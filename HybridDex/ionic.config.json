@@ -1,0 +1,7 @@
+{
+  "name": "HybridDex",
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "angular"
+}
