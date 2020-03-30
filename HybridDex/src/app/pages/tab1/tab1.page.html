@@ -1,23 +1,4 @@
-<ion-header>
-
-  <ion-toolbar color="primary">
-    <ion-title slot="start">
-      HybridDex
-    </ion-title>
-    <ion-segment>
-      <ion-segment-button value="all" checked>
-        Pokedex
-      </ion-segment-button>
-      <ion-segment-button value="favorites" routerLink="/catched">
-        Catched
-      </ion-segment-button>
-    </ion-segment>
-  </ion-toolbar>
-
-</ion-header>
-
 <ion-content>
-
   <ion-searchbar placeholder="Search Pokemon" (ionChange)="onSearchChange($event)"></ion-searchbar>
   <ion-list *ngIf="pokemon.length == 0">
     <ion-item *ngFor="let i of [1,2,3,4,5]">
@@ -37,7 +18,7 @@
 
 
   <ion-list>
-    <ion-item *ngFor="let poke of pokemon;" [routerLink]="poke.pokeIndex">
+    <ion-item *ngFor="let poke of pokemon;" routerLink="/details/{{poke.pokeIndex}}" href="/details">
       <ion-avatar slot="start">
         <img [src]="poke.image" style="background: #f2f2f2;">
       </ion-avatar>

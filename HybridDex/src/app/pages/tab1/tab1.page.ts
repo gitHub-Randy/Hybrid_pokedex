@@ -1,13 +1,15 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {PokemonService} from '../services/pokemon.service';
 import {IonInfiniteScroll} from '@ionic/angular';
+import {PokemonService} from '../../services/pokemon.service';
 
 @Component({
-  selector: 'app-home',
-  templateUrl: 'home.page.html',
-  styleUrls: ['home.page.scss'],
+  selector: 'app-tab1',
+  templateUrl: './tab1.page.html',
+  styleUrls: ['./tab1.page.scss'],
 })
-export class HomePage implements OnInit{
+export class Tab1Page implements OnInit {
+
+
   offset = 0;
   pokemon = [];
   @ViewChild(IonInfiniteScroll, null) infinite: IonInfiniteScroll;
@@ -48,4 +50,5 @@ export class HomePage implements OnInit{
       this.pokemon = [];
     })
   }
+
 }
