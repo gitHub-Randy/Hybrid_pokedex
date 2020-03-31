@@ -83,7 +83,6 @@ export class Tab2Page implements OnInit {
     this.geolocation.getCurrentPosition().then((resp) => {
       // resp.coords.latitude
       // resp.coords.longitude
-      console.log(resp)
       this.ownLoc.push(resp.coords.latitude, resp.coords.longitude);
     }).catch((error) => {
       console.log('Error getting location', error);
@@ -108,34 +107,45 @@ export class Tab2Page implements OnInit {
       let randomPokemonIndex = Math.floor((Math.random() * 125) + 1);
       this.pokemonService.getPokeDetails(randomPokemonIndex).subscribe(res =>{
         let pokemon = res;
-        console.log(" YEEEEET")
-        console.log(this.ownLoc)
-        let coords = this.generateNearbyLocation(parseInt(this.ownLoc[0]), parseInt(this.ownLoc[1]), 10)
+        let coords = this.generateNearbyLocation(parseFloat(this.ownLoc[0]), parseFloat(this.ownLoc[1]))
         let newPokemon = {
           'Latitude': coords[0], 'Longitude': coords[1], 'Pokemon': pokemon.name,
           'ImgURL': pokemon.images[2], 'Id': pokemon.id
         };
         this.spawnedPokemon.push(newPokemon);
-        this.addPokeMarkers(pokemon.images[2])
 
+        const iconDefault = icon({
+          iconUrl:pokemon.images[2] ,
+          iconSize: [35, 35], // size of the icon
+          iconAnchor: [12,41],
+          tooltipAnchor:[16,-28]
+        })
+        Marker.prototype.options.icon = iconDefault;
+        Marker.prototype.options.icon = iconDefault;
+        console.log(this.spawnedPokemon.length)
+        let pokeMarker = marker([this.spawnedPokemon[i].Latitude, this.spawnedPokemon[i].Longitude], {
+          draggable:
+              false
+        });
+        pokeMarker.addTo(this.map);
 
       })
     }
-    console.log(this.spawnedPokemon)
   }
 
 
   addPokeMarkers(iconUrl){
-    const iconDefault = icon({
-      iconUrl,
-      iconSize: [35, 35], // size of the icon
 
-      iconAnchor: [12,41],
-      tooltipAnchor:[16,-28]
-    })
-    Marker.prototype.options.icon = iconDefault;
     console.log(this.spawnedPokemon)
     for(let i = 0; i< this.spawnedPokemon.length;i ++){
+      const iconDefault = icon({
+        iconUrl,
+        iconSize: [35, 35], // size of the icon
+
+        iconAnchor: [12,41],
+        tooltipAnchor:[16,-28]
+      })
+      Marker.prototype.options.icon = iconDefault;
       let pokeMarker = marker([this.spawnedPokemon[i].Latitude, this.spawnedPokemon[i].Longitude], {
         draggable:
             false
@@ -145,9 +155,38 @@ export class Tab2Page implements OnInit {
   }
 
   generateNearbyLocation(lat,lng){
-    var randomLat = Math.random() * (lat - 51.6850) + 51.6850
-    var randomLon = Math.random() * (5.3200 - 5.2800) + 5.2800
+
+    var r = 100/111300 // = 100 meters
+        , y0 = lat
+        , x0 = lng
+        , u = Math.random()
+        , v = Math.random()
+        , w = r * Math.sqrt(u)
+        , t = 2 * Math.PI * v
+        , x = w * Math.cos(t)
+        , y1 = w * Math.sin(t)
+        , x1 = x / Math.cos(y0)
+
+     var newY = y0 + y1
+    var newX = x0 + x1
+
+
+      return [parseFloat(newY),parseFloat(newX)]
+    let minLat = lat-0.300000000000000;
+    let maxLat = lat+0.300000000000000;
+
+    let minLong = lng+0.300000000000000;
+    let maxLong = lng+0.300000000000000;
+    // max-min) +min
+    var randomLat =  this.getRandomNum(minLat, maxLat);
+    var randomLon = this.getRandomNum(minLong, maxLong);
+    console.log(lat,lng)
+
     return [randomLat, randomLon];
+  }
+
+  getRandomNum(min,max){
+    return Math.random() * (min - max) + min;
   }
 
 
