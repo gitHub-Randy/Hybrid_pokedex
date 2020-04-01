@@ -22,6 +22,7 @@ export class Tab2Page implements OnInit {
     });
     this.spawnPokemons();
 
+
   }
 
   ngOnInit() {
@@ -81,21 +82,14 @@ export class Tab2Page implements OnInit {
 
   getLocation(){
     this.geolocation.getCurrentPosition().then((resp) => {
-      // resp.coords.latitude
-      // resp.coords.longitude
       this.ownLoc.push(resp.coords.latitude, resp.coords.longitude);
     }).catch((error) => {
       console.log('Error getting location', error);
     });
-
     let watch = this.geolocation.watchPosition();
     watch.subscribe((data) => {
-
       this.removeMarker();
       this.addMarker(data.coords.latitude,data.coords.longitude);
-      // data can be a set of coordinates, or an error (if an error occurred).
-      // data.coords.latitude
-      // data.coords.longitude
     });
   }
 
@@ -110,49 +104,33 @@ export class Tab2Page implements OnInit {
         let coords = this.generateNearbyLocation(parseFloat(this.ownLoc[0]), parseFloat(this.ownLoc[1]))
         let newPokemon = {
           'Latitude': coords[0], 'Longitude': coords[1], 'Pokemon': pokemon.name,
-          'ImgURL': pokemon.images[2], 'Id': pokemon.id
+          'ImgURL': pokemon.images[3], 'Id': pokemon.id
         };
-        this.spawnedPokemon.push(newPokemon);
 
+        this.spawnedPokemon.push(newPokemon);
         const iconDefault = icon({
-          iconUrl:pokemon.images[2] ,
-          iconSize: [35, 35], // size of the icon
+          iconUrl: newPokemon.ImgURL,
+          iconSize: [50, 50], // size of the icon
           iconAnchor: [12,41],
           tooltipAnchor:[16,-28]
         })
         Marker.prototype.options.icon = iconDefault;
         Marker.prototype.options.icon = iconDefault;
-        console.log(this.spawnedPokemon.length)
-        let pokeMarker = marker([this.spawnedPokemon[i].Latitude, this.spawnedPokemon[i].Longitude], {
+        console.log(i, "INDEX")
+        let pokeMarker = marker([newPokemon.Latitude, newPokemon.Longitude], {
           draggable:
               false
         });
         pokeMarker.addTo(this.map);
-
       })
+
     }
+
   }
 
 
-  addPokeMarkers(iconUrl){
 
-    console.log(this.spawnedPokemon)
-    for(let i = 0; i< this.spawnedPokemon.length;i ++){
-      const iconDefault = icon({
-        iconUrl,
-        iconSize: [35, 35], // size of the icon
 
-        iconAnchor: [12,41],
-        tooltipAnchor:[16,-28]
-      })
-      Marker.prototype.options.icon = iconDefault;
-      let pokeMarker = marker([this.spawnedPokemon[i].Latitude, this.spawnedPokemon[i].Longitude], {
-        draggable:
-            false
-      });
-      pokeMarker.addTo(this.map);
-    }
-  }
 
   generateNearbyLocation(lat,lng){
 
@@ -171,23 +149,10 @@ export class Tab2Page implements OnInit {
     var newX = x0 + x1
 
 
-      return [parseFloat(newY),parseFloat(newX)]
-    let minLat = lat-0.300000000000000;
-    let maxLat = lat+0.300000000000000;
+    return [parseFloat(newY),parseFloat(newX)]
 
-    let minLong = lng+0.300000000000000;
-    let maxLong = lng+0.300000000000000;
-    // max-min) +min
-    var randomLat =  this.getRandomNum(minLat, maxLat);
-    var randomLon = this.getRandomNum(minLong, maxLong);
-    console.log(lat,lng)
-
-    return [randomLat, randomLon];
   }
 
-  getRandomNum(min,max){
-    return Math.random() * (min - max) + min;
-  }
 
 
 }
