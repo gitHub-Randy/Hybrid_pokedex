@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs/operators';
+import {error} from "util";
 
 @Injectable({
   providedIn: 'root'
@@ -56,6 +57,8 @@ export class PokemonService {
           })
       )
   }
+
+
 
 
 

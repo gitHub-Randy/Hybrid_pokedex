@@ -3,6 +3,8 @@ import { Map, latLng, tileLayer, Layer, marker,Marker, icon, layerGroup } from '
 import { Geolocation } from '@ionic-native/geolocation/ngx';
 import { Platform } from '@ionic/angular';
 import {PokemonService} from "../../services/pokemon.service";
+import { AlertController } from '@ionic/angular';
+import {map} from "rxjs/operators";
 
 
 @Component({
@@ -15,16 +17,25 @@ export class Tab2Page implements OnInit {
   locationMarker: marker;
   spawnedPokemon = [];
   ownLoc = [];
-  constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService) {
+  constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private alertController: AlertController) {
     this.platform.ready().then(() => {
-      this.getLocation();
+      // this.getLocation();
 
     });
     this.spawnPokemons();
 
-
   }
 
+  async presentAlert() {
+    const alert = await this.alertController.create({
+      header: 'Alert',
+      subHeader: 'Subtitle',
+      message: 'This is an alert message.',
+      buttons: ['OK']
+    });
+
+    await alert.present();
+  }
   ngOnInit() {
   }
 
@@ -33,7 +44,23 @@ export class Tab2Page implements OnInit {
 
     }
 
-  ionViewDidEnter() { this.leafletMap(); }
+  ionViewDidEnter() {
+    this.leafletMap();
+
+    this.watchLoc().subscribe(data =>{
+      this.ownLoc.push(data.coords.latitude.toFixed(7), data.coords.longitude.toFixed(7));
+
+      this.removeMarker();
+      this.addMarker(data.coords.latitude,data.coords.longitude);
+      this.spawnedPokemon.forEach(value =>{
+        console.log(this.ownLoc[0], this.ownLoc[1], " OWN ")
+        console.log(value.Latitude, value.Longitude, `${ value.Pokemon}`)
+        if(this.ownLoc[0] == value.Latitude && this.ownLoc[1] == value.Longitude){
+          this.presentAlert()
+        }
+      })
+    })
+    }
 
   leafletMap() {
     // In setView add latLng and zoom
@@ -80,27 +107,41 @@ export class Tab2Page implements OnInit {
     this.map.remove();
   }
 
-  getLocation(){
-    this.geolocation.getCurrentPosition().then((resp) => {
-      this.ownLoc.push(resp.coords.latitude, resp.coords.longitude);
-    }).catch((error) => {
-      console.log('Error getting location', error);
-    });
-    let watch = this.geolocation.watchPosition();
-    watch.subscribe((data) => {
-      this.removeMarker();
-      this.addMarker(data.coords.latitude,data.coords.longitude);
-    });
+  // getLocation(){
+  //   this.geolocation.getCurrentPosition({timeout: 3000}).then((resp) => {
+  //   }).catch((error) => {
+  //     console.log('Error getting location', error);
+  //   });
+  //   let watch = this.geolocation.watchPosition();
+  //   watch.subscribe((data) => {
+  //
+  //
+  //   });
+  // }
+
+
+  watchLoc(){
+    try{
+      let watch = this.geolocation.watchPosition({enableHighAccuracy: true});
+      return watch.pipe(
+          map(data =>{
+            return data;
+          })
+      );
+    }catch (e) {
+      return  e;
+    }
   }
 
 
-
   spawnPokemons(){
-    for(let i = 0; i< 10; i++){
+    for(let i = 0; i< 1; i++){
       // @ts-ignore
       let randomPokemonIndex = Math.floor((Math.random() * 125) + 1);
+
+  // this.pokemonService.getPokeDetails(randomPokemonIndex).then()
       this.pokemonService.getPokeDetails(randomPokemonIndex).subscribe(res =>{
-        let pokemon = res;
+        let pokemon: any = res;
         let coords = this.generateNearbyLocation(parseFloat(this.ownLoc[0]), parseFloat(this.ownLoc[1]))
         let newPokemon = {
           'Latitude': coords[0], 'Longitude': coords[1], 'Pokemon': pokemon.name,
@@ -123,6 +164,8 @@ export class Tab2Page implements OnInit {
         });
         pokeMarker.addTo(this.map);
       })
+      // this.presentAlert()
+
 
     }
 
@@ -133,23 +176,21 @@ export class Tab2Page implements OnInit {
 
 
   generateNearbyLocation(lat,lng){
+    return [parseFloat(lat).toFixed(7),parseFloat(lng).toFixed(7)]
+    var radius = Math.sqrt(0.1) * 100
+    var y0 = lat;
+    var x0 = lng;
+    var rd = radius / 111300; //about 111300 meters in one degree
+    var u = Math.random();
+    var v = Math.random();
+    var w = rd * Math.sqrt(u);
+    var t = 2 * Math.PI * v;
+    var x = w * Math.cos(t);
+    var y = w * Math.sin(t);
+    var newlat = y + y0;
+    var newlon = x + x0;
 
-    var r = 100/111300 // = 100 meters
-        , y0 = lat
-        , x0 = lng
-        , u = Math.random()
-        , v = Math.random()
-        , w = r * Math.sqrt(u)
-        , t = 2 * Math.PI * v
-        , x = w * Math.cos(t)
-        , y1 = w * Math.sin(t)
-        , x1 = x / Math.cos(y0)
-
-     var newY = y0 + y1
-    var newX = x0 + x1
-
-
-    return [parseFloat(newY),parseFloat(newX)]
+    return [parseFloat(newlat).toFixed(7),parseFloat(newlon).toFixed(7)]
 
   }
 
