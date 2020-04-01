@@ -4,6 +4,7 @@ import {Geolocation} from '@ionic-native/geolocation/ngx';
 import {AlertController, Platform} from '@ionic/angular';
 import {PokemonService} from '../../services/pokemon.service';
 import {map} from 'rxjs/operators';
+import {Router} from "@angular/router";
 
 @Component({
     selector: 'app-tab2',
@@ -15,13 +16,15 @@ export class Tab2Page implements OnInit {
     locationMarker: marker;
     spawnedPokemon = [];
     ownLoc = [];
+    hasCatched: boolean;
 
-    constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private alertController: AlertController) {
+    constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private alertController: AlertController, private router: Router) {
         this.platform.ready().then(() => {
             // this.getLocation();
 
         });
         this.spawnPokemons();
+        this.hasCatched = false;
     }
 
     ngOnInit() {
@@ -35,17 +38,26 @@ export class Tab2Page implements OnInit {
         this.leafletMap();
 
         this.watchLoc().subscribe(data => {
-            this.ownLoc.push(data.coords.latitude.toFixed(7), data.coords.longitude.toFixed(7));
-
+            this.ownLoc[0] = data.coords.latitude.toFixed(7);
+            this.ownLoc[1] = data.coords.longitude.toFixed(7);
+            console.log(this.ownLoc)
             this.removeMarker();
             this.addMarker(data.coords.latitude, data.coords.longitude);
             this.spawnedPokemon.forEach(value => {
-                console.log(this.ownLoc[0], this.ownLoc[1], ' OWN ');
-                console.log(value.Latitude, value.Longitude, `${value.Pokemon}`);
-                if (this.ownLoc[0] == value.Latitude && this.ownLoc[1] == value.Longitude) {
-                    this.presentAlertConfirm();
+
+                console.log(this.calculateDistance(this.ownLoc[0], this.ownLoc[1],value.Latitude, value.Longitude));
+                if(this.calculateDistance(this.ownLoc[0], this.ownLoc[1],value.Latitude, value.Longitude) <= 25){
+                    if(!this.hasCatched){
+                        this.hasCatched = true;
+                        this.presentAlertConfirm();
+
+                    }
+
                 }
+                // if (this.ownLoc[0] == value.Latitude && this.ownLoc[1] == value.Longitude) {
+                // }
             });
+            console.log("===================")
         });
     }
 
@@ -119,10 +131,9 @@ export class Tab2Page implements OnInit {
     }
 
     spawnPokemons() {
-        for (let i = 0; i < 1; i++) {
+        for (let i = 0; i < 10; i++) {
             // @ts-ignore
             let randomPokemonIndex = Math.floor((Math.random() * 125) + 1);
-
             // this.pokemonService.getPokeDetails(randomPokemonIndex).then()
             this.pokemonService.getPokeDetails(randomPokemonIndex).subscribe(res => {
                 let pokemon: any = res;
@@ -131,7 +142,6 @@ export class Tab2Page implements OnInit {
                     'Latitude': coords[0], 'Longitude': coords[1], 'Pokemon': pokemon.name,
                     'ImgURL': pokemon.images[3], 'Id': pokemon.id
                 };
-
                 this.spawnedPokemon.push(newPokemon);
                 const iconDefault = icon({
                     iconUrl: newPokemon.ImgURL,
@@ -152,8 +162,7 @@ export class Tab2Page implements OnInit {
     }
 
     generateNearbyLocation(lat, lng) {
-        return [parseFloat(lat).toFixed(7), parseFloat(lng).toFixed(7)];
-        var radius = Math.sqrt(0.1) * 100;
+        var radius = Math.sqrt(10) * 100;
         var y0 = lat;
         var x0 = lng;
         var rd = radius / 111300; //about 111300 meters in one degree
@@ -165,7 +174,6 @@ export class Tab2Page implements OnInit {
         var y = w * Math.sin(t);
         var newlat = y + y0;
         var newlon = x + x0;
-
         return [parseFloat(newlat).toFixed(7), parseFloat(newlon).toFixed(7)];
     }
 
@@ -179,11 +187,13 @@ export class Tab2Page implements OnInit {
                     role: 'cancel',
                     cssClass: 'secondary',
                     handler: (blah) => {
+                        this.hasCatched = false;
                         console.log('Confirm Cancel: blah');
                     }
                 }, {
                     text: 'Catch',
                     handler: () => {
+                        this.router.navigateByUrl('/');
                         console.log('Confirm Okay');
                     }
                 }
@@ -203,7 +213,7 @@ export class Tab2Page implements OnInit {
             Math.sin(dLon / 2) * Math.sin(dLon / 2)
         ;
         var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return (R * c); // Distance in km
+        return (R * c) * 1000; // Distance in km
     }
 
     deg2rad(deg) {
