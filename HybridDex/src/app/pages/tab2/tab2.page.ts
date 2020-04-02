@@ -5,8 +5,7 @@ import {AlertController, NavController, Platform} from '@ionic/angular';
 import {PokemonService} from '../../services/pokemon.service';
 import {map} from 'rxjs/operators';
 import {Router} from '@angular/router';
-import {Camera, CameraOptions} from '@ionic-native/camera/ngx';
-import {Subscription} from "rxjs";
+import {Subscription} from 'rxjs';
 import { NavigationExtras } from '@angular/router';
 
 @Component({
@@ -20,12 +19,11 @@ export class Tab2Page implements OnInit {
     spawnedPokemon = [];
     ownLoc = [];
     hasCatched: boolean;
-    currentImage: any;
     pokeServiceSubscription: Subscription;
     locationSubscription: Subscription;
     pokemonToCatch: {};
   
-    constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private alertController: AlertController, private router: Router ,private navCtrl: NavController, private camera: Camera) {
+    constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private alertController: AlertController, private router: Router , private navCtrl: NavController) {
     }
 
     ngOnInit() {
@@ -250,21 +248,5 @@ export class Tab2Page implements OnInit {
 
     deg2rad(deg) {
         return deg * (Math.PI / 180);
-    }
-
-    takePicture() {
-        const options: CameraOptions = {
-            quality: 100,
-            destinationType: this.camera.DestinationType.DATA_URL,
-            encodingType: this.camera.EncodingType.JPEG,
-            mediaType: this.camera.MediaType.PICTURE
-        };
-
-        this.camera.getPicture(options).then((imageData) => {
-            this.currentImage = 'data:image/jpeg;base64,' + imageData;
-        }, (err) => {
-            // Handle error
-            console.log('Camera issue:' + err);
-        });
     }
 }
