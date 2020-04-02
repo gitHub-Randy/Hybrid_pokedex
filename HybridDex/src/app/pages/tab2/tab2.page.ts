@@ -22,8 +22,8 @@ export class Tab2Page implements OnInit {
     pokeServiceSubscription: Subscription;
     locationSubscription: Subscription;
     pokemonToCatch: {};
-    pokeMarkers: marker =  [];
-  
+    pokeMarkers: marker = [];
+
     constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private alertController: AlertController, private router: Router , private navCtrl: NavController) {
     }
 
@@ -61,7 +61,6 @@ export class Tab2Page implements OnInit {
         this.ownLoc = [];
         this.spawnedPokemon = [];
         this.map.remove();
-
     }
 
 
@@ -72,17 +71,17 @@ export class Tab2Page implements OnInit {
             console.log("wooot")
             this.ownLoc[0] = data.coords.latitude.toFixed(7);
             this.ownLoc[1] = data.coords.longitude.toFixed(7);
-            this.map.setView(this.ownLoc)
+            this.map.setView(this.ownLoc);
             this.removeMarker();
             this.addMarker(data.coords.latitude, data.coords.longitude);
             this.spawnedPokemon.forEach(value => {
-                console.log(this.calculateDistance(this.ownLoc[0], this.ownLoc[1],value.Latitude, value.Longitude));
-                if(this.calculateDistance(this.ownLoc[0], this.ownLoc[1],value.Latitude, value.Longitude) <= 25){
+                console.log(this.calculateDistance(this.ownLoc[0], this.ownLoc[1], value.Latitude, value.Longitude));
+                if(this.calculateDistance(this.ownLoc[0], this.ownLoc[1], value.Latitude, value.Longitude) <= 25){
                     this.pokemonToCatch = value;
                     console.log(this.pokemonToCatch);
                     if(!this.hasCatched){
                         this.hasCatched = true;
-                        this.presentAlertConfirm();
+                        this.pokemonCatchConfirm();
 
                     }
                 }
@@ -129,8 +128,6 @@ export class Tab2Page implements OnInit {
             this.map.removeLayer(this.locationMarker);
         }
     }
-
-
 
     watchLoc() {
         try {
@@ -199,7 +196,7 @@ export class Tab2Page implements OnInit {
         return [parseFloat(newlat).toFixed(7), parseFloat(newlon).toFixed(7)];
     }
 
-    async presentAlertConfirm() {
+    async pokemonCatchConfirm() {
         const alert = await this.alertController.create({
             header: 'Catch Pokemon',
             message: 'Do you want to catch this pokemon?',
@@ -215,6 +212,51 @@ export class Tab2Page implements OnInit {
                 }, {
                     text: 'Catch',
                     handler: () => {
+                        this.spawnedPokemon.forEach((value, index) => {
+                            // console.log(value.Latitude);
+                            // console.log(this.pokemonToCatch.Latitude);
+                            if (value.Latitude === this.pokemonToCatch.Latitude && value.Longitude === this.pokemonToCatch.Longitude) {
+                                this.spawnedPokemon.splice(index, 1);
+                                for (let pokeMarkersKey in this.pokeMarkers) {
+                                    if (value.Latitude === pokeMarkersKey.Latitude && value.Longitude === pokeMarkersKey.Longitude){
+                                        this.map.removeLayer(pokeMarkersKey);
+                                    }
+                                }
+                            }
+                        });
+                        let navigationExtras: NavigationExtras = {
+                            queryParams: {
+                                pokemon: this.pokemonToCatch
+
+                            }
+                        };
+                        this.pokemonDetailsConfirm();
+                        // this.navCtrl.navigateRoot('/catch', navigationExtras);
+                        console.log('Confirm Okay');
+                    }
+                }
+            ]
+        });
+
+        await alert.present();
+    }
+
+    async pokemonDetailsConfirm() {
+        const alert = await this.alertController.create({
+            header: 'View pokemon',
+            message: 'Do you want to view the details of this pokemon?',
+            buttons: [
+                {
+                    text: 'No',
+                    role: 'cancel',
+                    cssClass: 'secondary',
+                    handler: (blah) => {
+                        this.hasCatched = false;
+                        console.log('Confirm Cancel: blah');
+                    }
+                }, {
+                    text: 'Yes',
+                    handler: () => {
                         this.pokeServiceSubscription.unsubscribe();
                         this.locationSubscription.unsubscribe();
                         this.ownLoc = [];
@@ -223,10 +265,9 @@ export class Tab2Page implements OnInit {
                         let navigationExtras: NavigationExtras = {
                             queryParams: {
                                 pokemon: this.pokemonToCatch
-
                             }
                         };
-                        this.navCtrl.navigateRoot('/catch',navigationExtras);
+                        this.navCtrl.navigateRoot('/catch', navigationExtras);
                         console.log('Confirm Okay');
                     }
                 }
