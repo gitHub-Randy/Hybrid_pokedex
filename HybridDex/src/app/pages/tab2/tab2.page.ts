@@ -22,6 +22,7 @@ export class Tab2Page implements OnInit {
     pokeServiceSubscription: Subscription;
     locationSubscription: Subscription;
     pokemonToCatch: {};
+    pokeMarkers: marker =  [];
   
     constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private alertController: AlertController, private router: Router , private navCtrl: NavController) {
     }
@@ -176,8 +177,10 @@ export class Tab2Page implements OnInit {
                         false
                 });
                 pokeMarker.addTo(this.map);
+                this.pokeMarkers.push(pokeMarker);
             });
         }
+
     }
 
     generateNearbyLocation(lat, lng) {

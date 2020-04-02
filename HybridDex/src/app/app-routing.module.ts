@@ -10,6 +10,10 @@ const routes: Routes = [
   {
     path: 'catch',
     loadChildren: () => import('./pages/catch/catch.module').then( m => m.CatchPageModule)
+  },
+  {
+    path: 'catched-detail',
+    loadChildren: () => import('./pages/catched-detail/catched-detail.module').then( m => m.CatchedDetailPageModule)
   }
 ];
 
