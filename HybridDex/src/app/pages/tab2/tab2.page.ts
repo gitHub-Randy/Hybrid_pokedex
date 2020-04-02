@@ -4,7 +4,8 @@ import {Geolocation} from '@ionic-native/geolocation/ngx';
 import {AlertController, Platform} from '@ionic/angular';
 import {PokemonService} from '../../services/pokemon.service';
 import {map} from 'rxjs/operators';
-import {Router} from "@angular/router";
+import {Router} from '@angular/router';
+import {Camera, CameraOptions} from '@ionic-native/camera/ngx';
 
 @Component({
     selector: 'app-tab2',
@@ -17,8 +18,10 @@ export class Tab2Page implements OnInit {
     spawnedPokemon = [];
     ownLoc = [];
     hasCatched: boolean;
+    currentImage: any;
 
-    constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private alertController: AlertController, private router: Router) {
+    constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private alertController: AlertController,
+                private router: Router, private camera: Camera) {
         this.platform.ready().then(() => {
             // this.getLocation();
 
@@ -218,5 +221,21 @@ export class Tab2Page implements OnInit {
 
     deg2rad(deg) {
         return deg * (Math.PI / 180);
+    }
+
+    takePicture() {
+        const options: CameraOptions = {
+            quality: 100,
+            destinationType: this.camera.DestinationType.DATA_URL,
+            encodingType: this.camera.EncodingType.JPEG,
+            mediaType: this.camera.MediaType.PICTURE
+        };
+
+        this.camera.getPicture(options).then((imageData) => {
+            this.currentImage = 'data:image/jpeg;base64,' + imageData;
+        }, (err) => {
+            // Handle error
+            console.log('Camera issue:' + err);
+        });
     }
 }
