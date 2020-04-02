@@ -1,0 +1,15 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="tabs/tab2"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="ion-text-capitalize">{{ pokemon.Pokemon}}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+
+<ion-content>
+  <ion-label>Catch het {{ pokemon.Pokemon}}</ion-label><br>
+  <ion-text> Je hebt een {{ pokemon.Pokemon}}  gevonden! <br> maak snel een foto om het te vangen</ion-text>
+  <ion-button>Open Camera</ion-button>
+</ion-content>
