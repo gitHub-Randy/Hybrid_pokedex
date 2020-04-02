@@ -1,11 +1,13 @@
 import {Component, OnInit} from '@angular/core';
 import {icon, Map, Marker, marker, tileLayer} from 'leaflet';
 import {Geolocation} from '@ionic-native/geolocation/ngx';
-import {AlertController, Platform} from '@ionic/angular';
+import {AlertController, NavController, Platform} from '@ionic/angular';
 import {PokemonService} from '../../services/pokemon.service';
 import {map} from 'rxjs/operators';
 import {Router} from '@angular/router';
 import {Camera, CameraOptions} from '@ionic-native/camera/ngx';
+import {Subscription} from "rxjs";
+import { NavigationExtras } from '@angular/router';
 
 @Component({
     selector: 'app-tab2',
@@ -19,54 +21,82 @@ export class Tab2Page implements OnInit {
     ownLoc = [];
     hasCatched: boolean;
     currentImage: any;
-
-    constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private alertController: AlertController,
-                private router: Router, private camera: Camera) {
-        this.platform.ready().then(() => {
-            // this.getLocation();
-
-        });
-        this.spawnPokemons();
-        this.hasCatched = false;
+    pokeServiceSubscription: Subscription;
+    locationSubscription: Subscription;
+    pokemonToCatch: {};
+  
+    constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private alertController: AlertController, private router: Router ,private navCtrl: NavController, private camera: Camera) {
     }
 
     ngOnInit() {
     }
+    ionViewDidLoad(){
+        console.log("ionViewDidLoad")
+    }
+    ionViewWillEnter(){
+        console.log("ionViewWillEnter")
 
-    ionViewDidLoad() {
-        console.log('yeet');
+    }
+    ionViewWillLeave(){
+        console.log("ionViewWillLeave")
+
     }
 
-    ionViewDidEnter() {
-        this.leafletMap();
+    ionViewWillUnload(){
+        console.log("ionViewWillUnload")
 
-        this.watchLoc().subscribe(data => {
+    }
+    ionViewCanEnter(){
+        console.log("ionViewCanEnter")
+
+    }
+    ionViewCanLeave(){
+        console.log("ionViewCanLeave")
+
+    }
+
+    ionViewDidLeave(){
+        console.log("yeeting")
+        this.pokeServiceSubscription.unsubscribe();
+        this.locationSubscription.unsubscribe();
+        this.ownLoc = [];
+        this.spawnedPokemon = [];
+        this.map.remove();
+
+    }
+
+
+
+    ionViewDidEnter() {
+        console.log("yeeting IN")
+        this.locationSubscription =  this.watchLoc().subscribe(data => {
+            console.log("wooot")
             this.ownLoc[0] = data.coords.latitude.toFixed(7);
             this.ownLoc[1] = data.coords.longitude.toFixed(7);
-            console.log(this.ownLoc)
+            this.map.setView(this.ownLoc)
             this.removeMarker();
             this.addMarker(data.coords.latitude, data.coords.longitude);
             this.spawnedPokemon.forEach(value => {
-
                 console.log(this.calculateDistance(this.ownLoc[0], this.ownLoc[1],value.Latitude, value.Longitude));
                 if(this.calculateDistance(this.ownLoc[0], this.ownLoc[1],value.Latitude, value.Longitude) <= 25){
+                    this.pokemonToCatch = value;
+                    console.log(this.pokemonToCatch);
                     if(!this.hasCatched){
                         this.hasCatched = true;
                         this.presentAlertConfirm();
 
                     }
-
                 }
-                // if (this.ownLoc[0] == value.Latitude && this.ownLoc[1] == value.Longitude) {
-                // }
             });
-            console.log("===================")
         });
+        this.leafletMap(this.ownLoc[0],this.ownLoc[1]);
+        this.spawnPokemons();
+        this.hasCatched = false;
     }
 
-    leafletMap() {
-        // In setView add latLng and zoom
-        this.map = new Map('map').setView([51.877229, 5.523009], 17);
+    leafletMap(lat,lng) {
+        console.log(lat,lng)
+        this.map = new Map('map').setView([0, 0], 17);
         tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution:
                 '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -80,7 +110,6 @@ export class Tab2Page implements OnInit {
         const iconDefault = icon({
             iconUrl,
             iconSize: [35, 35], // size of the icon
-
             iconAnchor: [12, 41],
             tooltipAnchor: [16, -28]
         });
@@ -103,22 +132,6 @@ export class Tab2Page implements OnInit {
     }
 
 
-    /** Remove map when we have multiple map object */
-    ionViewWillLeave() {
-        this.map.remove();
-    }
-
-    // getLocation(){
-    //   this.geolocation.getCurrentPosition({timeout: 3000}).then((resp) => {
-    //   }).catch((error) => {
-    //     console.log('Error getting location', error);
-    //   });
-    //   let watch = this.geolocation.watchPosition();
-    //   watch.subscribe((data) => {
-    //
-    //
-    //   });
-    // }
 
     watchLoc() {
         try {
@@ -133,14 +146,20 @@ export class Tab2Page implements OnInit {
         }
     }
 
+
+
+
     spawnPokemons() {
+
         for (let i = 0; i < 10; i++) {
             // @ts-ignore
             let randomPokemonIndex = Math.floor((Math.random() * 125) + 1);
             // this.pokemonService.getPokeDetails(randomPokemonIndex).then()
-            this.pokemonService.getPokeDetails(randomPokemonIndex).subscribe(res => {
+            this.pokeServiceSubscription  = this.pokemonService.getPokeDetails(randomPokemonIndex).subscribe(res => {
                 let pokemon: any = res;
                 let coords = this.generateNearbyLocation(parseFloat(this.ownLoc[0]), parseFloat(this.ownLoc[1]));
+                console.log(this.ownLoc, "OWNLOC");
+                console.log(coords, "COORDS")
                 let newPokemon = {
                     'Latitude': coords[0], 'Longitude': coords[1], 'Pokemon': pokemon.name,
                     'ImgURL': pokemon.images[3], 'Id': pokemon.id
@@ -154,7 +173,6 @@ export class Tab2Page implements OnInit {
                 });
                 Marker.prototype.options.icon = iconDefault;
                 Marker.prototype.options.icon = iconDefault;
-                console.log(i, 'INDEX');
                 let pokeMarker = marker([newPokemon.Latitude, newPokemon.Longitude], {
                     draggable:
                         false
@@ -196,7 +214,18 @@ export class Tab2Page implements OnInit {
                 }, {
                     text: 'Catch',
                     handler: () => {
-                        this.router.navigateByUrl('/');
+                        this.pokeServiceSubscription.unsubscribe();
+                        this.locationSubscription.unsubscribe();
+                        this.ownLoc = [];
+                        this.spawnedPokemon = [];
+                        this.map.remove();
+                        let navigationExtras: NavigationExtras = {
+                            queryParams: {
+                                pokemon: this.pokemonToCatch
+
+                            }
+                        };
+                        this.navCtrl.navigateRoot('/catch',navigationExtras);
                         console.log('Confirm Okay');
                     }
                 }

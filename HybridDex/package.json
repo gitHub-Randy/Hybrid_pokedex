@@ -20,6 +20,7 @@
     "@angular/platform-browser-dynamic": "~8.2.14",
     "@angular/router": "~8.2.14",
     "@ionic-native/camera": "^5.23.0",
+    "@babel/compat-data": "^7.8.0",
     "@ionic-native/core": "^5.0.0",
     "@ionic-native/geolocation": "^5.23.0",
     "@ionic-native/splash-screen": "^5.0.0",
