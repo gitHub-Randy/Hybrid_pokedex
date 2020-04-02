@@ -11,5 +11,5 @@
 <ion-content>
   <ion-label>Catch het {{ pokemon.Pokemon}}</ion-label><br>
   <ion-text> Je hebt een {{ pokemon.Pokemon}}  gevonden! <br> maak snel een foto om het te vangen</ion-text>
-  <ion-button>Open Camera</ion-button>
+  <ion-button (click)="takePicture()">Open Camera</ion-button>
 </ion-content>
