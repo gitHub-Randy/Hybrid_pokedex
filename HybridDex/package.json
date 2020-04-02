@@ -85,8 +85,7 @@
       }
     },
     "platforms": [
-      "android",
-      "browser"
+      "android"
     ]
   },
   "resolutions": {
