@@ -1,5 +1,5 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {IonInfiniteScroll} from '@ionic/angular';
+import {IonInfiniteScroll, IonReorderGroup} from '@ionic/angular';
 import {PokemonService} from '../../services/pokemon.service';
 
 @Component({
@@ -8,11 +8,11 @@ import {PokemonService} from '../../services/pokemon.service';
   styleUrls: ['./tab1.page.scss'],
 })
 export class Tab1Page implements OnInit {
-
-
   offset = 0;
   pokemon = [];
   @ViewChild(IonInfiniteScroll, null) infinite: IonInfiniteScroll;
+  // @ts-ignore
+  @ViewChild(IonReorderGroup) reorderGroup: IonReorderGroup;
   constructor(private pokeService: PokemonService) {}
 
   ngOnInit(): void {
@@ -51,12 +51,19 @@ export class Tab1Page implements OnInit {
     })
   }
 
-  toggleReorder() {
-    const reorderGroup = document.getElementById('reorder');
-    reorderGroup.disabled = !reorderGroup.disabled;
-    reorderGroup.addEventListener('ionItemReorder', ({detail}) => {
-      detail.complete(true);
-    });
+  doReorder(ev: any) {
+    // The `from` and `to` properties contain the index of the item
+    // when the drag started and ended, respectively
+    console.log('Dragged from index', ev.detail.from, 'to', ev.detail.to);
+
+    // Finish the reorder and position the item in the DOM based on
+    // where the gesture ended. This method can also be called directly
+    // by the reorder group
+    ev.detail.complete();
+  }
+
+  toggleReorderGroup() {
+    this.reorderGroup.disabled = !this.reorderGroup.disabled;
   }
 
 }
