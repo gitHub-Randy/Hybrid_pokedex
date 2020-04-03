@@ -3,10 +3,11 @@ import {icon, Map, Marker, marker, tileLayer} from 'leaflet';
 import {Geolocation} from '@ionic-native/geolocation/ngx';
 import {AlertController, NavController, Platform} from '@ionic/angular';
 import {PokemonService} from '../../services/pokemon.service';
-import {map} from 'rxjs/operators';
+import {map, timeout} from 'rxjs/operators';
 import {Router} from '@angular/router';
 import {Subscription} from 'rxjs';
 import { NavigationExtras } from '@angular/router';
+import { Storage } from '@ionic/storage';
 
 @Component({
     selector: 'app-tab2',
@@ -24,7 +25,7 @@ export class Tab2Page implements OnInit {
     pokemonToCatch: {};
     pokeMarkers: marker = [];
 
-    constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private alertController: AlertController, private router: Router , private navCtrl: NavController) {
+    constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private alertController: AlertController, private router: Router , private navCtrl: NavController, private storage: Storage) {
     }
 
     ngOnInit() {
@@ -75,10 +76,8 @@ export class Tab2Page implements OnInit {
             this.removeMarker();
             this.addMarker(data.coords.latitude, data.coords.longitude);
             this.spawnedPokemon.forEach(value => {
-                console.log(this.calculateDistance(this.ownLoc[0], this.ownLoc[1], value.Latitude, value.Longitude));
                 if(this.calculateDistance(this.ownLoc[0], this.ownLoc[1], value.Latitude, value.Longitude) <= 25){
                     this.pokemonToCatch = value;
-                    console.log(this.pokemonToCatch);
                     if(!this.hasCatched){
                         this.hasCatched = true;
                         this.pokemonCatchConfirm();
@@ -88,12 +87,27 @@ export class Tab2Page implements OnInit {
             });
         });
         this.leafletMap(this.ownLoc[0],this.ownLoc[1]);
-        this.spawnPokemons();
+        // this.test();
+        this.checkNotAsync().then((data)=>{
+            if(data[0] == null){
+                this.generatePokemon().then((data)=>{
+
+                    this.makePokeMarker(data);
+                });
+            }
+            this.makePokeMarker(data);
+        });
+        // this.spawnPokemons().then(() =>{
+        //     for(let i = 1; i<11;i++){
+        //         this.storage.get(`pokemon${i}`).then(data=>{
+        //             console.log(data)
+        //         })
+        //     }
+        // });
         this.hasCatched = false;
     }
 
     leafletMap(lat,lng) {
-        console.log(lat,lng)
         this.map = new Map('map').setView([0, 0], 17);
         tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution:
@@ -145,40 +159,74 @@ export class Tab2Page implements OnInit {
 
 
 
-    spawnPokemons() {
+    async checkNotAsync(){
+        let array : Array<any> = [];
+        for(let i = 0; i< 10;i++) {
+             await this.storage.get(`pokemon${i}`).then((data)=>{
+                if(data != null){
+                    array.push(data);
+                    this.spawnedPokemon.push(data)
 
-        for (let i = 0; i < 10; i++) {
-            // @ts-ignore
-            let randomPokemonIndex = Math.floor((Math.random() * 125) + 1);
-            // this.pokemonService.getPokeDetails(randomPokemonIndex).then()
-            this.pokeServiceSubscription  = this.pokemonService.getPokeDetails(randomPokemonIndex).subscribe(res => {
-                let pokemon: any = res;
-                let coords = this.generateNearbyLocation(parseFloat(this.ownLoc[0]), parseFloat(this.ownLoc[1]));
-                console.log(this.ownLoc, "OWNLOC");
-                console.log(coords, "COORDS")
-                let newPokemon = {
-                    'Latitude': coords[0], 'Longitude': coords[1], 'Pokemon': pokemon.name,
-                    'ImgURL': pokemon.images[3], 'Id': pokemon.id
-                };
-                this.spawnedPokemon.push(newPokemon);
-                const iconDefault = icon({
-                    iconUrl: newPokemon.ImgURL,
-                    iconSize: [50, 50], // size of the icon
-                    iconAnchor: [12, 41],
-                    tooltipAnchor: [16, -28]
-                });
-                Marker.prototype.options.icon = iconDefault;
-                Marker.prototype.options.icon = iconDefault;
-                let pokeMarker = marker([newPokemon.Latitude, newPokemon.Longitude], {
-                    draggable:
-                        false
-                });
-                pokeMarker.addTo(this.map);
-                this.pokeMarkers.push(pokeMarker);
-            });
+                }
+             });
+
         }
+        return array;
+    }
+
+   async getPokemon(){
+       let array:Array<any> = [];
+
+       for(let i = 0; i< 10;i++) {
+           let randomPokemonIndex = Math.floor((Math.random() * 125) + 1);
+           await this.pokemonService.getPokeDetails(randomPokemonIndex).toPromise().then((data) =>{
+               let pokemon: any = data;
+               let coords = this.generateNearbyLocation(parseFloat(this.ownLoc[0]), parseFloat(this.ownLoc[1]));
+               let newPokemon = {
+                   'Latitude': coords[0], 'Longitude': coords[1], 'Pokemon': pokemon.name,
+                   'ImgURL': pokemon.images[3], 'Id': pokemon.id
+               };
+               this.storage.set(`pokemon${i}`, newPokemon);
+               this.spawnedPokemon.push(newPokemon);
+               array.push(newPokemon);
+           })
+
+       }
+       return array;
 
     }
+
+    async generatePokemon() {
+        return  new Promise(res =>{
+                 this.getPokemon().then((data) =>{
+                     res(data);
+                });
+        })
+    }
+
+
+
+     makePokeMarker(data) {
+        for(let i =0; i< data.length;i++){
+            const iconDefault = icon({
+                iconUrl: data[i].ImgURL,
+                iconSize: [50, 50], // size of the icon
+                iconAnchor: [12, 41],
+                tooltipAnchor: [16, -28]
+            });
+            Marker.prototype.options.icon = iconDefault;
+            Marker.prototype.options.icon = iconDefault;
+            let pokeMarker = marker([data[i].Latitude, data[i].Longitude], {
+                draggable:
+                    false
+            });
+            pokeMarker.addTo(this.map);
+            this.pokeMarkers.push(pokeMarker);
+        }
+    }
+
+
+
 
     generateNearbyLocation(lat, lng) {
         var radius = Math.sqrt(10) * 100;
@@ -212,18 +260,42 @@ export class Tab2Page implements OnInit {
                 }, {
                     text: 'Catch',
                     handler: () => {
-                        this.spawnedPokemon.forEach((value, index) => {
-                            // console.log(value.Latitude);
-                            // console.log(this.pokemonToCatch.Latitude);
-                            if (value.Latitude === this.pokemonToCatch.Latitude && value.Longitude === this.pokemonToCatch.Longitude) {
-                                this.spawnedPokemon.splice(index, 1);
-                                for (let pokeMarkersKey in this.pokeMarkers) {
-                                    if (value.Latitude === pokeMarkersKey.Latitude && value.Longitude === pokeMarkersKey.Longitude){
-                                        this.map.removeLayer(pokeMarkersKey);
-                                    }
+
+
+                        for(let i = 0; i< 10; i++){
+                            this.storage.get(`pokemon${i}`).then((data) =>{
+                                if(data.Latitude == this.pokemonToCatch.Latitude &&data.Longitude == this.pokemonToCatch.Longitude ){
+                                    this.storage.remove(`pokemon${i}`);
                                 }
+                            })
+
+                        }
+                        for(let x = 0; x < this.pokeMarkers.length; x++){
+                            if(this.pokeMarkers[x]._latlng.lat ==this.pokemonToCatch.Latitude && this.pokeMarkers[x]._latlng.lng ==this.pokemonToCatch.Longitude){
+                                this.map.removeLayer(this.pokeMarkers[x]);
+                                this.pokeMarkers.splice(x,1);
+                                break;
                             }
-                        });
+                        }
+
+
+
+                        // console.log()
+
+                        // this.spawnedPokemon.forEach((value, index) => {
+                        //     // console.log(value.Latitude);
+                        //     // console.log(this.pokemonToCatch.Latitude);
+                        //     if (value.Latitude === this.pokemonToCatch.Latitude && value.Longitude === this.pokemonToCatch.Longitude) {
+                        //         this.spawnedPokemon.splice(index, 1);
+                        //         for (let pokeMarkersKey in this.pokeMarkers) {
+                        //             console.log(this.pokeMarkers[pokeMarkersKey]);
+                        //             console.log(value)
+                        //             if (value.Latitude === pokeMarkersKey.Latitude && value.Longitude === pokeMarkersKey.Longitude){
+                        //                 this.map.removeLayer(pokeMarkersKey);
+                        //             }
+                        //         }
+                        //     }
+                        // });
                         let navigationExtras: NavigationExtras = {
                             queryParams: {
                                 pokemon: this.pokemonToCatch
@@ -293,4 +365,7 @@ export class Tab2Page implements OnInit {
     deg2rad(deg) {
         return deg * (Math.PI / 180);
     }
+
+
+
 }
