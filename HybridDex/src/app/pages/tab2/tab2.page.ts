@@ -17,12 +17,12 @@ import { Storage } from '@ionic/storage';
 export class Tab2Page implements OnInit {
     map: Map;
     locationMarker: marker;
-    spawnedPokemon = [];
+    spawnedPokemon: Array<any> = [];
     ownLoc = [];
     hasCatched: boolean;
     pokeServiceSubscription: Subscription;
     locationSubscription: Subscription;
-    pokemonToCatch: {};
+    pokemonToCatch: any = {};
     pokeMarkers: marker = [];
 
     constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private alertController: AlertController, private router: Router , private navCtrl: NavController, private storage: Storage) {

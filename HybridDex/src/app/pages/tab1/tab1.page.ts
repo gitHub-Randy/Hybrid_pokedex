@@ -51,4 +51,12 @@ export class Tab1Page implements OnInit {
     })
   }
 
+  toggleReorder() {
+    const reorderGroup = document.getElementById('reorder');
+    reorderGroup.disabled = !reorderGroup.disabled;
+    reorderGroup.addEventListener('ionItemReorder', ({detail}) => {
+      detail.complete(true);
+    });
+  }
+
 }
