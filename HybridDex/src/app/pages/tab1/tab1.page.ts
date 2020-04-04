@@ -1,5 +1,5 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {AlertController, IonInfiniteScroll, IonReorderGroup, ToastController} from '@ionic/angular';
+import {IonInfiniteScroll, IonReorderGroup, ToastController} from '@ionic/angular';
 import {PokemonService} from '../../services/pokemon.service';
 import {Network} from '@ionic-native/network/ngx';
 
@@ -15,7 +15,7 @@ export class Tab1Page implements OnInit {
   // @ts-ignore
   @ViewChild(IonReorderGroup) reorderGroup: IonReorderGroup;
 
-  constructor(private pokeService: PokemonService, private toastController: ToastController, private network: Network, private alertController: AlertController) {
+  constructor(private pokeService: PokemonService, private toastController: ToastController, private network: Network) {
   }
 
   ngOnInit(): void {
@@ -24,7 +24,7 @@ export class Tab1Page implements OnInit {
     if (connectSubscription) {
       this.loadPokemon();
     } else {
-      this.presentOfflineAlert();
+      this.presentToast('No Internet, try again launching the app again, when you have internet connection.', 5000);
     }
 
     connectSubscription.unsubscribe();
@@ -70,23 +70,12 @@ export class Tab1Page implements OnInit {
     this.reorderGroup.disabled = !this.reorderGroup.disabled;
   }
 
-  async presentToast(name) {
+  async presentToast(message, duration) {
     const toast = await this.toastController.create({
-      message: 'You selected ' + name + '!',
-      duration: 2000
+      message,
+      duration
     });
     await toast.present();
-  }
-
-  async presentOfflineAlert() {
-    const alert = await this.alertController.create({
-      header: 'No Internet',
-      subHeader: 'ERROR',
-      message: 'Try again launching the app again, when you have internet connection.',
-      buttons: ['OK']
-    });
-
-    await alert.present();
   }
 
 }

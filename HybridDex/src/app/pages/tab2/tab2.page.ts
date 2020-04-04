@@ -66,16 +66,16 @@ export class Tab2Page implements OnInit {
     }
 
      subscribeToLocation(spawnedPokemon){
-        console.log("whooopp")
+        console.log("whooopp");
         this.locationSubscription =  this.watchLoc().subscribe(data => {
-            console.log(" LOGGINGS")
+            console.log(" LOGGINGS");
             this.ownLoc[0] = data.coords.latitude.toFixed(7);
             this.ownLoc[1] = data.coords.longitude.toFixed(7);
             this.map.setView(this.ownLoc);
             this.removeMarker();
             this.addMarker(data.coords.latitude, data.coords.longitude);
-            console.log("Before")
-            this.checkIfPokemonToCatch(spawnedPokemon)
+            console.log("Before");
+            this.checkIfPokemonToCatch(spawnedPokemon);
         });
     }
 
