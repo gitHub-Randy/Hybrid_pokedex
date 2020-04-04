@@ -53,24 +53,4 @@ export class CatchedDetailsPage implements OnInit {
       this.storage.set(`catchedPokemon${this.index}`, pokemon);
     })
   }
-
-  gotoPreviousPage() {
-    console.log("YEEET")
-    this.navCtrl.pop();
-    this.navCtrl.navigateRoot("tabs/tab3", );
-
-  }
-
-
-  showItem() {
-    this.navCtrl.remove(this.navCtrl.last().index)
-        .then(
-            () => {
-              this.navCtrl.push("tabs/tab3", {
-              });
-            },
-            error => {}
-        );
-
-  }
 }
