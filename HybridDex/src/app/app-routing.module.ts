@@ -12,9 +12,10 @@ const routes: Routes = [
     loadChildren: () => import('./pages/catch/catch.module').then( m => m.CatchPageModule)
   },
   {
-    path: 'catched-detail',
-    loadChildren: () => import('./pages/catched-detail/catched-detail.module').then( m => m.CatchedDetailPageModule)
-  }
+    path: 'catched-details/:id',
+    loadChildren: () => import('./pages/catched-details/catched-details.module').then( m => m.CatchedDetailsPageModule)
+  },
+
 ];
 
 @NgModule({

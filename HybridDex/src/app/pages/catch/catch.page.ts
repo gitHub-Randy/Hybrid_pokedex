@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {Camera, CameraOptions} from '@ionic-native/camera/ngx';
+import { Storage } from '@ionic/storage';
 
 @Component({
   selector: 'app-catch',
@@ -8,13 +9,29 @@ import {Camera, CameraOptions} from '@ionic-native/camera/ngx';
   styleUrls: ['./catch.page.scss'],
 })
 export class CatchPage implements OnInit {
-  pokemon: any;
+  pokemon: any = {
+    Latitude: 0,
+    Longitude: 0,
+    Id: 0,
+    Pokemon: "",
+    ImgURL: "",
+    CustomPhoto: "",
+    NickName: "",
+    CatchId: 0
+  }
   currentImage: any;
-  constructor(private route: ActivatedRoute, private camera: Camera) {
+  constructor(private route: ActivatedRoute, private camera: Camera, private storage: Storage) {
     this.route.queryParams.subscribe(params => {
-      this.pokemon = params.pokemon;
+      this.pokemon.Latitude = params.pokemon.Latitude;
+      this.pokemon.Longitude = params.pokemon.Longitude;
+      this.pokemon.Id = params.pokemon.Id;
+      this.pokemon.Pokemon = params.pokemon.Pokemon;
+      this.pokemon.ImgURL = params.pokemon.ImgURL;
+
       console.log(params.pokemon.Pokemon);
       console.log(this.pokemon);
+      this.removePokemonFromStorage(this.pokemon);
+      this.addToCathesStorage(this.pokemon);
 
     });
   }
@@ -31,11 +48,49 @@ export class CatchPage implements OnInit {
     };
 
     this.camera.getPicture(options).then((imageData) => {
+
       this.currentImage = 'data:image/jpeg;base64,' + imageData;
+      this.pokemon.CustomPhoto = this.currentImage;
+      this.storage.set(`catchedPokemon${this.pokemon.Id}`, this.pokemon);
+
     }, (err) => {
       // Handle error
       console.log('Camera issue:' + err);
     });
   }
 
+  async getPokemonFromStorage(key:string): Promise<void>{
+    return await this.storage.get(key);
+  }
+  async removePokemonFromStorage(pokemon): Promise<void>{
+    for(let i = 0; i< 10; i++){
+      this.getPokemonFromStorage(`pokemon${i}`).then((data: any) =>{
+        if(data != null){
+          if(data.Latitude == this.pokemon.Latitude &&data.Longitude == this.pokemon.Longitude ) {
+            console.log("delete storage")
+            return  this.storage.remove(`pokemon${i}`).then(()=>console.log("removed "+data.Pokemon));
+          }}})
+    }
+  }
+
+
+
+  async addToCathesStorage(pokemon: any) {
+    let id;
+     await this.storage.get("amountCatchedPokemons").then((data) =>{
+      if(data == null){
+        id = 0;
+      }else{
+        console.log(data)
+        id = data;
+      }
+       console.log(id);
+      this.pokemon.CatchId = (id+1);
+        this.storage.set("amountCatchedPokemons", (id+1)).then(() =>{
+         this.storage.set(`catchedPokemon${(id+1)}`, this.pokemon);
+
+       })
+    })
+
+  }
 }
