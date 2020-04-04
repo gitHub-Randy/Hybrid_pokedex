@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {Camera, CameraOptions} from '@ionic-native/camera/ngx';
 import { Storage } from '@ionic/storage';
+import { File } from '@ionic-native/file/ngx';
+import { WebView } from '@ionic-native/ionic-webview/ngx';
 
 @Component({
   selector: 'app-catch',
@@ -20,7 +22,11 @@ export class CatchPage implements OnInit {
     CatchId: 0
   }
   currentImage: any;
-  constructor(private route: ActivatedRoute, private camera: Camera, private storage: Storage) {
+  storedPhoto: any;
+  displayImage: any;
+
+
+  constructor(private route: ActivatedRoute, private camera: Camera, private storage: Storage,private file: File,private webview: WebView) {
     this.route.queryParams.subscribe(params => {
       this.pokemon.Latitude = params.pokemon.Latitude;
       this.pokemon.Longitude = params.pokemon.Longitude;
@@ -39,19 +45,23 @@ export class CatchPage implements OnInit {
   ngOnInit() {
   }
 
-  takePicture() {
+  async takePicture() {
     const options: CameraOptions = {
       quality: 100,
       destinationType: this.camera.DestinationType.DATA_URL,
       encodingType: this.camera.EncodingType.JPEG,
-      mediaType: this.camera.MediaType.PICTURE
+      mediaType: this.camera.MediaType.PICTURE,
+      saveToPhotoAlbum: true
+
+
     };
+
 
     this.camera.getPicture(options).then((imageData) => {
 
       this.currentImage = 'data:image/jpeg;base64,' + imageData;
       this.pokemon.CustomPhoto = this.currentImage;
-      this.storage.set(`catchedPokemon${this.pokemon.Id}`, this.pokemon);
+      this.storage.set(`catchedPokemon${this.pokemon.CatchId}`, this.pokemon);
 
     }, (err) => {
       // Handle error
