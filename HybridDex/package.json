@@ -37,6 +37,7 @@
     "cordova-plugin-geolocation": "^4.0.2",
     "cordova-sqlite-storage": "^5.0.0",
     "core-js": "^2.5.4",
+    "device": "0.3.10",
     "leaflet": "^1.6.0",
     "org.apache.cordova.geolocation": "^0.3.6",
     "rxjs": "~6.5.1",
