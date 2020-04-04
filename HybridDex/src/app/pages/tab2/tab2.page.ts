@@ -8,6 +8,7 @@ import {Router} from '@angular/router';
 import {Subscription} from 'rxjs';
 import { NavigationExtras } from '@angular/router';
 import { Storage } from '@ionic/storage';
+import {Network} from '@ionic-native/network/ngx';
 
 @Component({
     selector: 'app-tab2',
@@ -25,11 +26,12 @@ export class Tab2Page implements OnInit {
     pokemonToCatch: any = {};
     pokeMarkers: marker = [];
 
-    constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private alertController: AlertController, private router: Router , private navCtrl: NavController, private storage: Storage) {
+    constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private network: Network, private alertController: AlertController, private router: Router , private navCtrl: NavController, private storage: Storage) {
     }
 
     ngOnInit() {
     }
+
     ionViewDidLoad(){
         console.log("ionViewDidLoad")
     }
@@ -94,21 +96,29 @@ export class Tab2Page implements OnInit {
 
 
     ionViewDidEnter() {
-        console.log("yeeting IN")
-        this.subscribeToLocation(this.spawnedPokemon);
-        this.leafletMap(this.ownLoc[0],this.ownLoc[1]);
-        // this.test();
-        this.checkNotAsync().then((data)=>{
-            if(data[0] == null){
-                this.generatePokemon().then((data)=>{
+        const connectSubscription = this.network.onConnect().subscribe();
 
-                    this.makePokeMarker(data);
-                });
-            }
-            this.makePokeMarker(data);
-        });
+        if (connectSubscription) {
+            console.log("yeeting IN");
+            this.subscribeToLocation(this.spawnedPokemon);
+            this.leafletMap(this.ownLoc[0], this.ownLoc[1]);
+            // this.test();
+            this.checkNotAsync().then((data) => {
+                if (data[0] == null) {
+                    this.generatePokemon().then((data) => {
 
-        this.hasCatched = false;
+                        this.makePokeMarker(data);
+                    });
+                }
+                this.makePokeMarker(data);
+            });
+
+            this.hasCatched = false;
+        } else {
+            this.presentOfflineAlert();
+        }
+
+        connectSubscription.unsubscribe();
     }
 
     leafletMap(lat,lng) {
@@ -357,6 +367,17 @@ export class Tab2Page implements OnInit {
                     }
                 }
             ]
+        });
+
+        await alert.present();
+    }
+
+    async presentOfflineAlert() {
+        const alert = await this.alertController.create({
+            header: 'No Internet',
+            subHeader: 'ERROR',
+            message: 'Try again launching the app again, when you have internet connection.',
+            buttons: ['OK']
         });
 
         await alert.present();
