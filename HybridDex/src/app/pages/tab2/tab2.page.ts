@@ -17,12 +17,12 @@ import { Storage } from '@ionic/storage';
 export class Tab2Page implements OnInit {
     map: Map;
     locationMarker: marker;
-    spawnedPokemon = [];
+    spawnedPokemon: any = [];
     ownLoc = [];
     hasCatched: boolean;
     pokeServiceSubscription: Subscription;
     locationSubscription: Subscription;
-    pokemonToCatch: {};
+    pokemonToCatch: any = {};
     pokeMarkers: marker = [];
 
     constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private alertController: AlertController, private router: Router , private navCtrl: NavController, private storage: Storage) {
@@ -57,35 +57,45 @@ export class Tab2Page implements OnInit {
 
     ionViewDidLeave(){
         console.log("yeeting")
-        this.pokeServiceSubscription.unsubscribe();
         this.locationSubscription.unsubscribe();
         this.ownLoc = [];
         this.spawnedPokemon = [];
         this.map.remove();
     }
 
-
-
-    ionViewDidEnter() {
-        console.log("yeeting IN")
+     subscribeToLocation(spawnedPokemon){
+        console.log("whooopp")
         this.locationSubscription =  this.watchLoc().subscribe(data => {
-            console.log("wooot")
+            console.log(" LOGGINGS")
             this.ownLoc[0] = data.coords.latitude.toFixed(7);
             this.ownLoc[1] = data.coords.longitude.toFixed(7);
             this.map.setView(this.ownLoc);
             this.removeMarker();
             this.addMarker(data.coords.latitude, data.coords.longitude);
-            this.spawnedPokemon.forEach(value => {
-                if(this.calculateDistance(this.ownLoc[0], this.ownLoc[1], value.Latitude, value.Longitude) <= 25){
-                    this.pokemonToCatch = value;
-                    if(!this.hasCatched){
-                        this.hasCatched = true;
-                        this.pokemonCatchConfirm();
-
-                    }
-                }
-            });
+            console.log("Before")
+            this.checkIfPokemonToCatch(spawnedPokemon)
         });
+    }
+
+    async checkIfPokemonToCatch(spawnedPokemon){
+        spawnedPokemon.forEach(value => {
+            if(this.calculateDistance(this.ownLoc[0], this.ownLoc[1], value.Latitude, value.Longitude) <= 25){
+                this.pokemonToCatch = value;
+                if(!this.hasCatched){
+                    this.hasCatched = true;
+                     this.pokemonCatchConfirm().then((data) =>{
+                     });
+
+
+                }
+            }
+        });
+    }
+
+
+    ionViewDidEnter() {
+        console.log("yeeting IN")
+        this.subscribeToLocation(this.spawnedPokemon);
         this.leafletMap(this.ownLoc[0],this.ownLoc[1]);
         // this.test();
         this.checkNotAsync().then((data)=>{
@@ -97,13 +107,7 @@ export class Tab2Page implements OnInit {
             }
             this.makePokeMarker(data);
         });
-        // this.spawnPokemons().then(() =>{
-        //     for(let i = 1; i<11;i++){
-        //         this.storage.get(`pokemon${i}`).then(data=>{
-        //             console.log(data)
-        //         })
-        //     }
-        // });
+
         this.hasCatched = false;
     }
 
@@ -244,7 +248,15 @@ export class Tab2Page implements OnInit {
         return [parseFloat(newlat).toFixed(7), parseFloat(newlon).toFixed(7)];
     }
 
+
+
+
+
+
+
+
     async pokemonCatchConfirm() {
+        this.hasCatched = true;
         const alert = await this.alertController.create({
             header: 'Catch Pokemon',
             message: 'Do you want to catch this pokemon?',
@@ -255,55 +267,24 @@ export class Tab2Page implements OnInit {
                     cssClass: 'secondary',
                     handler: (blah) => {
                         this.hasCatched = false;
+                        this.subscribeToLocation(this.spawnedPokemon);
+
                         console.log('Confirm Cancel: blah');
                     }
                 }, {
                     text: 'Catch',
                     handler: () => {
-
-
-                        for(let i = 0; i< 10; i++){
-                            this.storage.get(`pokemon${i}`).then((data) =>{
-                                if(data.Latitude == this.pokemonToCatch.Latitude &&data.Longitude == this.pokemonToCatch.Longitude ){
-                                    this.storage.remove(`pokemon${i}`);
-                                }
-                            })
-
-                        }
-                        for(let x = 0; x < this.pokeMarkers.length; x++){
-                            if(this.pokeMarkers[x]._latlng.lat ==this.pokemonToCatch.Latitude && this.pokeMarkers[x]._latlng.lng ==this.pokemonToCatch.Longitude){
-                                this.map.removeLayer(this.pokeMarkers[x]);
-                                this.pokeMarkers.splice(x,1);
-                                break;
-                            }
-                        }
-
-
-
-                        // console.log()
-
-                        // this.spawnedPokemon.forEach((value, index) => {
-                        //     // console.log(value.Latitude);
-                        //     // console.log(this.pokemonToCatch.Latitude);
-                        //     if (value.Latitude === this.pokemonToCatch.Latitude && value.Longitude === this.pokemonToCatch.Longitude) {
-                        //         this.spawnedPokemon.splice(index, 1);
-                        //         for (let pokeMarkersKey in this.pokeMarkers) {
-                        //             console.log(this.pokeMarkers[pokeMarkersKey]);
-                        //             console.log(value)
-                        //             if (value.Latitude === pokeMarkersKey.Latitude && value.Longitude === pokeMarkersKey.Longitude){
-                        //                 this.map.removeLayer(pokeMarkersKey);
-                        //             }
-                        //         }
-                        //     }
-                        // });
-                        let navigationExtras: NavigationExtras = {
+                        this.locationSubscription.unsubscribe();
+                        this.ownLoc = [];
+                        this.spawnedPokemon = [];
+                        this.map.remove();
+                            let navigationExtras: NavigationExtras = {
                             queryParams: {
                                 pokemon: this.pokemonToCatch
 
                             }
                         };
-                        this.pokemonDetailsConfirm();
-                        // this.navCtrl.navigateRoot('/catch', navigationExtras);
+                        this.navCtrl.navigateRoot('/catch', navigationExtras);
                         console.log('Confirm Okay');
                     }
                 }
@@ -312,6 +293,39 @@ export class Tab2Page implements OnInit {
 
         await alert.present();
     }
+
+
+
+
+
+    removePokemonMarkers(pokemonToRemove){
+        return new Promise((res)=>{
+                for (let x = 0; x < this.pokeMarkers.length; x++) {
+                    if (this.pokeMarkers[x]._latlng.lat == pokemonToRemove.Latitude && this.pokeMarkers[x]._latlng.lng == pokemonToRemove.Longitude) {
+
+                        this.map.removeLayer(this.pokeMarkers[x]);
+                        this.pokeMarkers.splice(x, 1);
+                        return res
+                    }
+                }
+            })
+    }
+
+
+    async getPokemonFromStorage(key:string): Promise<void>{
+        return await this.storage.get(key);
+    }
+    async removePokemonFromStorage(pokemon): Promise<void>{
+        for(let i = 0; i< 10; i++){
+            this.getPokemonFromStorage(`pokemon${i}`).then((data: any) =>{
+                if(data != null){
+                    if(data.Latitude == pokemon.Latitude &&data.Longitude == pokemon.Longitude ) {
+
+                        return  this.storage.remove(`pokemon${i}`);
+                        }}})
+        }
+    }
+
 
     async pokemonDetailsConfirm() {
         const alert = await this.alertController.create({
@@ -323,8 +337,7 @@ export class Tab2Page implements OnInit {
                     role: 'cancel',
                     cssClass: 'secondary',
                     handler: (blah) => {
-                        this.hasCatched = false;
-                        console.log('Confirm Cancel: blah');
+                        this.pokemonToCatch = null;
                     }
                 }, {
                     text: 'Yes',
@@ -347,6 +360,10 @@ export class Tab2Page implements OnInit {
         });
 
         await alert.present();
+    }
+
+    setHasCatchedToFalse(){
+        setTimeout(() =>{this.hasCatched = false},1000);
     }
 
     calculateDistance(lat1, lon1, lat2, lon2) {

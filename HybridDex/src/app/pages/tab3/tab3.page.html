@@ -5,5 +5,17 @@
 </ion-header>
 
 <ion-content>
+    <ion-list>
+        <ion-card *ngFor="let poke of catchedPokemons;" routerLink="/catched-details/{{poke.CatchId}}" href="/catched-details">
+            <ion-card-header>
+                <ion-card-subtitle>{{poke.NickName}}</ion-card-subtitle>
+                <ion-card-title>{{poke.Pokemon}}</ion-card-title>
+            </ion-card-header>
+
+            <ion-card-content>
+
+            </ion-card-content>
+        </ion-card>
+    </ion-list>
 
 </ion-content>

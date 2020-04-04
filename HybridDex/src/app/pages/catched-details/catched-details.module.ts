@@ -4,17 +4,17 @@ import { FormsModule } from '@angular/forms';
 
 import { IonicModule } from '@ionic/angular';
 
-import { CatchedDetailPageRoutingModule } from './catched-detail-routing.module';
+import { CatchedDetailsPageRoutingModule } from './catched-details-routing.module';
 
-import { CatchedDetailPage } from './catched-detail.page';
+import { CatchedDetailsPage } from './catched-details.page';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    CatchedDetailPageRoutingModule
+    CatchedDetailsPageRoutingModule
   ],
-  declarations: [CatchedDetailPage]
+  declarations: [CatchedDetailsPage]
 })
-export class CatchedDetailPageModule {}
+export class CatchedDetailsPageModule {}
