@@ -17,7 +17,7 @@ import { Storage } from '@ionic/storage';
 export class Tab2Page implements OnInit {
     map: Map;
     locationMarker: marker;
-    spawnedPokemon: any = [];
+    spawnedPokemon: Array<any> = [];
     ownLoc = [];
     hasCatched: boolean;
     pokeServiceSubscription: Subscription;

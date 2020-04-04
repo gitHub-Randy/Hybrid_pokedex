@@ -1,5 +1,5 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {IonInfiniteScroll} from '@ionic/angular';
+import {IonInfiniteScroll, IonReorderGroup, ToastController} from '@ionic/angular';
 import {PokemonService} from '../../services/pokemon.service';
 
 @Component({
@@ -8,12 +8,14 @@ import {PokemonService} from '../../services/pokemon.service';
   styleUrls: ['./tab1.page.scss'],
 })
 export class Tab1Page implements OnInit {
-
-
   offset = 0;
   pokemon = [];
   @ViewChild(IonInfiniteScroll, null) infinite: IonInfiniteScroll;
-  constructor(private pokeService: PokemonService) {}
+  // @ts-ignore
+  @ViewChild(IonReorderGroup) reorderGroup: IonReorderGroup;
+
+  constructor(private pokeService: PokemonService, private toastController: ToastController) {
+  }
 
   ngOnInit(): void {
     this.loadPokemon();
@@ -49,6 +51,22 @@ export class Tab1Page implements OnInit {
     }, err =>{
       this.pokemon = [];
     })
+  }
+
+  doReorder(ev: any) {
+    ev.detail.complete();
+  }
+
+  toggleReorderGroup() {
+    this.reorderGroup.disabled = !this.reorderGroup.disabled;
+  }
+
+  async presentToast(name) {
+    const toast = await this.toastController.create({
+      message: 'You selected ' + name + '!',
+      duration: 2000
+    });
+    toast.present();
   }
 
 }
