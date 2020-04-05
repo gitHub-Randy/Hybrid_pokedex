@@ -16,6 +16,9 @@ import { File } from '@ionic-native/file/ngx';
 import { WebView } from '@ionic-native/ionic-webview/ngx';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 
+import { Network } from '@ionic-native/network/ngx';
+import { Diagnostic } from '@ionic-native/diagnostic/ngx';
+
 @NgModule({
   declarations: [AppComponent],
   entryComponents: [],
@@ -25,6 +28,8 @@ import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
     StatusBar,
     SplashScreen,
     Camera,
+    Network,
+    Diagnostic,
     File,
     WebView,
     AndroidPermissions,

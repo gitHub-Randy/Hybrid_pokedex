@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {Network} from '@ionic-native/network/ngx';
+import { Network } from '@ionic-native/network/ngx';
 
 @Injectable({
   providedIn: 'root'
@@ -10,8 +10,12 @@ export class NetworkService {
 
 
   isConnected(): boolean {
-    let conntype = this.network.type;
-    console.log("yet")
-    return conntype && conntype !== 'unknown' && conntype !== 'none';
+    const networkState = this.network.type;
+    console.log(networkState);
+    if (networkState === 'none') {
+      return false;
+    } else {
+      return true;
+    }
   }
 }

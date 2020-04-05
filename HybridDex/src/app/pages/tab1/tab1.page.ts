@@ -1,7 +1,6 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {IonInfiniteScroll, IonReorderGroup, ToastController} from '@ionic/angular';
 import {PokemonService} from '../../services/pokemon.service';
-import {Network} from '@ionic-native/network/ngx';
 import {Subscription} from 'rxjs';
 import {NetworkService} from '../../services/network.service';
 
@@ -17,28 +16,25 @@ export class Tab1Page implements OnInit {
   // @ts-ignore
   @ViewChild(IonReorderGroup) reorderGroup: IonReorderGroup;
 
-  constructor(private pokeService: PokemonService, private toastController: ToastController,private network: NetworkService) {
+  constructor(private pokeService: PokemonService, private toastController: ToastController, private network: NetworkService) {
   }
 
-  disconnectSubscription: Subscription;
   connectSubscription: Subscription;
 
   ngOnInit(): void {
-
-
   }
 
 
-  ionViewDidLeave(){
+  ionViewDidLeave() {
 
   }
 
-  ionViewDidEnter(){
+  ionViewDidEnter() {
       this.loadPokemon();
-
   }
 
   loadPokemon(loadMore = false, event ?) {
+    console.log(this.network.isConnected());
     if (this.network.isConnected()) {
       if (loadMore) {
         this.offset += 25;
@@ -53,27 +49,24 @@ export class Tab1Page implements OnInit {
           this.infinite.disabled = true;
         }
       });
-    }else{
+    } else {
       this.presentToast('No Internet, try again launching the app again, when you have internet connection.', 5000);
-
     }
-
-
   }
 
-  onSearchChange(e){
-    let value = e.detail.value;
-    if(value == ''){
+  onSearchChange(e) {
+    const value = e.detail.value;
+    if (value == '') {
       this.offset = 0;
       this.loadPokemon();
       return;
     }
 
-    this.pokeService.findPokemon(value).subscribe(res =>{
+    this.pokeService.findPokemon(value).subscribe(res => {
       this.pokemon = [res];
-    }, err =>{
+    }, err => {
       this.pokemon = [];
-    })
+    });
   }
 
   doReorder(ev: any) {
@@ -85,12 +78,11 @@ export class Tab1Page implements OnInit {
   }
 
   async presentToast(message, duration) {
-    console.log(" YEET")
+    console.log(' YEET');
     const toast = await this.toastController.create({
-      message: 'You selected ' + name + '!',
-      duration: 2000
+      message,
+      duration
     });
     toast.present();
   }
-
 }

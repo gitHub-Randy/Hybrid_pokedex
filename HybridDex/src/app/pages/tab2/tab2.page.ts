@@ -3,14 +3,14 @@ import {icon, Map, Marker, marker, tileLayer} from 'leaflet';
 import {Geolocation} from '@ionic-native/geolocation/ngx';
 import {AlertController, NavController, Platform, ToastController} from '@ionic/angular';
 import {PokemonService} from '../../services/pokemon.service';
-import {map, timeout} from 'rxjs/operators';
-import {Router} from '@angular/router';
+import {map} from 'rxjs/operators';
+import {NavigationExtras, Router} from '@angular/router';
 import {Subscription} from 'rxjs';
-import { NavigationExtras } from '@angular/router';
-import { Storage } from '@ionic/storage';
-import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
-import {Network} from '@ionic-native/network/ngx';
+import {Storage} from '@ionic/storage';
+import {AndroidPermissions} from '@ionic-native/android-permissions/ngx';
 import {NetworkService} from '../../services/network.service';
+import { Diagnostic } from '@ionic-native/diagnostic/ngx';
+import {error} from 'util';
 
 @Component({
     selector: 'app-tab2',
@@ -28,7 +28,7 @@ export class Tab2Page implements OnInit {
     pokemonToCatch: any = {};
     pokeMarkers: marker = [];
 
-    constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private network: NetworkService, private alertController: AlertController, private router: Router , private toastController: ToastController, private navCtrl: NavController, private storage: Storage,private androidPermissions: AndroidPermissions) {
+    constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private network: NetworkService, private alertController: AlertController, private router: Router, private toastController: ToastController, private navCtrl: NavController, private storage: Storage, private androidPermissions: AndroidPermissions, private diagnostic: Diagnostic) {
     }
 
     ngOnInit() {
@@ -49,34 +49,66 @@ export class Tab2Page implements OnInit {
         console.log("ionViewWillUnload")
 
     }
-    ionViewCanEnter(){
-        console.log("ionViewCanEnter")
 
-    }
-    ionViewCanLeave(){
-        console.log("ionViewCanLeave")
+    ionViewCanEnter() {
+        console.log('ionViewCanEnter');
 
     }
 
-    ionViewDidLeave(){
-        console.log("yeeting")
+    ionViewCanLeave() {
+        console.log('ionViewCanLeave');
+
+    }
+
+    ionViewDidLeave() {
+        console.log('yeeting');
         this.locationSubscription.unsubscribe();
         this.ownLoc = [];
         this.spawnedPokemon = [];
         this.map.remove();
     }
 
-     subscribeToLocation(spawnedPokemon){
-        console.log("whooopp")
-        this.locationSubscription =  this.watchLoc().subscribe(data => {
-            console.log(" LOGGINGS")
+    ionViewDidEnter() {
+        if (this.network.isConnected()) {
+            this.checkPermission().then(() => {
+                this.diagnostic.isLocationEnabled().then((data) => {
+                    if (data === true) {
+                        this.subscribeToLocation(this.spawnedPokemon);
+                        this.leafletMap(this.ownLoc[0], this.ownLoc[1]);
+                        // this.test();
+                        this.checkNotAsync().then((data) => {
+                            if (data[0] == null) {
+                                this.generatePokemon().then((data) => {
+
+                                    this.makePokeMarker(data);
+                                });
+                            }
+                            this.makePokeMarker(data);
+                        });
+
+                        this.hasCatched = false;
+                    } else {
+                        this.presentToast('No GPS, turn GPS on and try launching the app again.', 5000);
+                    }
+                });
+            });
+        } else {
+            this.presentToast('No Internet, try again launching the app again, when you have internet connection.', 5000);
+        }
+
+    }
+
+    subscribeToLocation(spawnedPokemon) {
+        console.log('whooopp');
+        this.locationSubscription = this.watchLoc().subscribe(data => {
+            console.log(' LOGGINGS');
             this.ownLoc[0] = data.coords.latitude.toFixed(7);
             this.ownLoc[1] = data.coords.longitude.toFixed(7);
             this.map.setView(this.ownLoc);
             this.removeMarker();
             this.addMarker(data.coords.latitude, data.coords.longitude);
-            console.log("Before")
-            this.checkIfPokemonToCatch(spawnedPokemon)
+            console.log('Before');
+            this.checkIfPokemonToCatch(spawnedPokemon);
         });
     }
 
@@ -96,36 +128,12 @@ export class Tab2Page implements OnInit {
     }
 
 
-  async  checkPermission(){
-        console.log("ACCESS PERMISSION")
-        await this.androidPermissions.requestPermissions([this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION]);
-
-    }
-
-    ionViewDidEnter() {
-        if (this.network.isConnected()) {
-        this.checkPermission().then(() => {
-            console.log("yeeting IN")
-            this.subscribeToLocation(this.spawnedPokemon);
-            this.leafletMap(this.ownLoc[0],this.ownLoc[1]);
-            // this.test();
-            this.checkNotAsync().then((data)=>{
-                if(data[0] == null){
-                    this.generatePokemon().then((data)=>{
-
-                        this.makePokeMarker(data);
-                    });
-                }
-                this.makePokeMarker(data);
-            });
-
-            this.hasCatched = false;
-        });
-          } else {
-            this.presentToast('No Internet, try again launching the app again, when you have internet connection.', 5000);
-        }
-
-    }
+  async  checkPermission() {
+      console.log('ACCESS PERMISSION');
+      await this.androidPermissions.requestPermissions([this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION]).catch((error) => {
+          this.presentToast('No GPS Permission, turn on GPS permission and try again launching the app again.', 5000);
+      });
+  }
 
     leafletMap(lat,lng) {
         this.map = new Map('map').setView([0, 0], 17);
@@ -172,6 +180,7 @@ export class Tab2Page implements OnInit {
                 })
             );
         } catch (e) {
+            this.presentToast('No GPS, Turn GPS on and launching the app again.', 5000);
             return e;
         }
     }
