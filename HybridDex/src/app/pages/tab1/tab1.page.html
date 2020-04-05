@@ -27,7 +27,7 @@
 
   <ion-list>
     <ion-reorder-group (ionItemReorder)="doReorder($event)" disabled="true">
-      <ion-item *ngFor="let poke of pokemon;" (click)="presentToast('You have selected ' + poke.name, 2000)" routerLink="/details/{{poke.pokeIndex}}" href="/details">
+      <ion-item *ngFor="let poke of pokemon;" (click)="presentToast(poke.name)" routerLink="/details/{{poke.pokeIndex}}" href="/details">
         <ion-avatar slot="start">
           <img [src]="poke.image" style="background: #f2f2f2;">
         </ion-avatar>
