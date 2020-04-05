@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import {ActivatedRoute} from "@angular/router";
 import {PokemonService} from "../../services/pokemon.service";
 import { Storage } from '@ionic/storage';
-import {NavController} from "@ionic/angular";
+import {NavController, ToastController} from '@ionic/angular';
 import {Camera, CameraOptions} from '@ionic-native/camera/ngx';
+import {NetworkService} from '../../services/network.service';
 
 @Component({
   selector: 'app-catched-details',
@@ -23,7 +24,7 @@ export class CatchedDetailsPage implements OnInit {
    nickName;
   currentImage: any;
 
-  constructor(private  route: ActivatedRoute,private camera: Camera,private pokeService: PokemonService,private storage:Storage,private navCtrl: NavController) { }
+  constructor(private  route: ActivatedRoute,private camera: Camera,private pokeService: PokemonService,private storage:Storage,private navCtrl: NavController, private network: NetworkService, private toastController: ToastController) { }
 
   ngOnInit() {
      this.index = this.route.snapshot.paramMap.get('id');
@@ -31,9 +32,15 @@ export class CatchedDetailsPage implements OnInit {
     this.catchedPokemon =  this.storage.get(`catchedPokemon${this.index}`).then((data) =>{
       this.nickName = data.NickName
       this.currentImage = data.CustomPhoto;
-      this.pokeService.getPokeDetails(data.Id).subscribe(details =>{
-        this.details = details;
-      })
+      if(this.network.isConnected()){
+        this.pokeService.getPokeDetails(data.Id).subscribe(details =>{
+          this.details = details;
+        })
+      }else{
+        this.presentToast('No Internet, try again launching the app again, when you have internet connection.', 5000);
+
+      }
+
      }).then(() =>{
        console.log(this.catchedPokemon);
     })
@@ -95,6 +102,13 @@ export class CatchedDetailsPage implements OnInit {
   }
 
 
-
+  async presentToast(message, duration) {
+    console.log(" YEET")
+    const toast = await this.toastController.create({
+      message,
+      duration
+    });
+    await toast.present();
+  }
 
 }

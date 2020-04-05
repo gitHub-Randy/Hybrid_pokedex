@@ -2,6 +2,8 @@ import {Component, OnInit, ViewChild} from '@angular/core';
 import {IonInfiniteScroll, IonReorderGroup, ToastController} from '@ionic/angular';
 import {PokemonService} from '../../services/pokemon.service';
 import {Network} from '@ionic-native/network/ngx';
+import {Subscription} from 'rxjs';
+import {NetworkService} from '../../services/network.service';
 
 @Component({
   selector: 'app-tab1',
@@ -15,35 +17,47 @@ export class Tab1Page implements OnInit {
   // @ts-ignore
   @ViewChild(IonReorderGroup) reorderGroup: IonReorderGroup;
 
-  constructor(private pokeService: PokemonService, private toastController: ToastController, private network: Network) {
+  constructor(private pokeService: PokemonService, private toastController: ToastController,private network: NetworkService) {
   }
 
+  disconnectSubscription: Subscription;
+  connectSubscription: Subscription;
+
   ngOnInit(): void {
-    const connectSubscription = this.network.onConnect().subscribe();
 
-    if (connectSubscription) {
+
+  }
+
+
+  ionViewDidLeave(){
+
+  }
+
+  ionViewDidEnter(){
       this.loadPokemon();
-    } else {
-      this.presentToast('No Internet, try again launching the app again, when you have internet connection.', 5000);
-    }
 
-    connectSubscription.unsubscribe();
   }
 
   loadPokemon(loadMore = false, event ?) {
-    if (loadMore) {
-      this.offset += 25;
+    if (this.network.isConnected()) {
+      if (loadMore) {
+        this.offset += 25;
+      }
+      this.pokeService.getPokemon(this.offset).subscribe(res => {
+        console.log('result: ', res);
+        this.pokemon = [...this.pokemon, ...res];
+        if (event) {
+          event.target.complete();
+        }
+        if (this.offset == 125) {
+          this.infinite.disabled = true;
+        }
+      });
+    }else{
+      this.presentToast('No Internet, try again launching the app again, when you have internet connection.', 5000);
+
     }
-    this.pokeService.getPokemon(this.offset).subscribe(res => {
-      console.log('result: ', res);
-      this.pokemon = [...this.pokemon, ...res];
-      if (event) {
-        event.target.complete();
-      }
-      if (this.offset == 125) {
-        this.infinite.disabled = true;
-      }
-    });
+
 
   }
 
@@ -71,6 +85,7 @@ export class Tab1Page implements OnInit {
   }
 
   async presentToast(message, duration) {
+    console.log(" YEET")
     const toast = await this.toastController.create({
       message,
       duration

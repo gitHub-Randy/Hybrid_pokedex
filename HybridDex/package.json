@@ -92,8 +92,8 @@
       },
       "cordova-sqlite-storage": {},
       "cordova-plugin-file": {},
-      "cordova-plugin-android-permissions": {}
-      "cordova-plugin-network-information": {},
+      "cordova-plugin-android-permissions": {},
+      "cordova-plugin-network-information": {}
     },
     "platforms": [
       "android"

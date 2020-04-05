@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {icon, Map, Marker, marker, tileLayer} from 'leaflet';
 import {Geolocation} from '@ionic-native/geolocation/ngx';
-import {AlertController, NavController, Platform} from '@ionic/angular';
+import {AlertController, NavController, Platform, ToastController} from '@ionic/angular';
 import {PokemonService} from '../../services/pokemon.service';
 import {map, timeout} from 'rxjs/operators';
 import {Router} from '@angular/router';
@@ -10,6 +10,7 @@ import { NavigationExtras } from '@angular/router';
 import { Storage } from '@ionic/storage';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import {Network} from '@ionic-native/network/ngx';
+import {NetworkService} from '../../services/network.service';
 
 @Component({
     selector: 'app-tab2',
@@ -27,7 +28,7 @@ export class Tab2Page implements OnInit {
     pokemonToCatch: any = {};
     pokeMarkers: marker = [];
 
-    constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private network: Network, private alertController: AlertController, private router: Router , private navCtrl: NavController, private storage: Storage,private androidPermissions: AndroidPermissions) {
+    constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private network: NetworkService, private alertController: AlertController, private router: Router , private toastController: ToastController, private navCtrl: NavController, private storage: Storage,private androidPermissions: AndroidPermissions) {
     }
 
     ngOnInit() {
@@ -103,10 +104,7 @@ export class Tab2Page implements OnInit {
     }
 
     ionViewDidEnter() {
-      const connectSubscription = this.network.onConnect().subscribe();
-
-        if (connectSubscription) {
-      
+        if (this.network.isConnected()) {
         this.checkPermission().then(() => {
             console.log("yeeting IN")
             this.subscribeToLocation(this.spawnedPokemon);
@@ -125,10 +123,9 @@ export class Tab2Page implements OnInit {
             this.hasCatched = false;
         });
           } else {
-            this.presentOfflineAlert();
+            this.presentToast('No Internet, try again launching the app again, when you have internet connection.', 5000);
         }
 
-        connectSubscription.unsubscribe();
     }
 
     leafletMap(lat,lng) {
@@ -392,6 +389,16 @@ export class Tab2Page implements OnInit {
 
         await alert.present();
     }
+
+    async presentToast(message, duration) {
+        console.log(" YEET")
+        const toast = await this.toastController.create({
+            message,
+            duration
+        });
+        await toast.present();
+    }
+
 
     setHasCatchedToFalse(){
         setTimeout(() =>{this.hasCatched = false},1000);
