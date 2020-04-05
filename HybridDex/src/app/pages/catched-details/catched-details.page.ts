@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import {ActivatedRoute} from "@angular/router";
-import {PokemonService} from "../../services/pokemon.service";
-import { Storage } from '@ionic/storage';
+import {Component, OnInit} from '@angular/core';
+import {ActivatedRoute} from '@angular/router';
+import {PokemonService} from '../../services/pokemon.service';
+import {Storage} from '@ionic/storage';
 import {NavController, ToastController} from '@ionic/angular';
 import {Camera, CameraOptions} from '@ionic-native/camera/ngx';
 import {NetworkService} from '../../services/network.service';
@@ -12,46 +12,41 @@ import {NetworkService} from '../../services/network.service';
   styleUrls: ['./catched-details.page.scss'],
 })
 export class CatchedDetailsPage implements OnInit {
-  details :any;
+  details: any;
   slideOpts = {
-    autoplay:{
+    autoplay: {
       delay: 1000,
       disableOnInteraction: false,
     }
   };
-  catchedPokemon:any;
-   index;
+  catchedPokemon: any;
+  index;
    nickName;
   currentImage: any;
 
-  constructor(private  route: ActivatedRoute,private camera: Camera,private pokeService: PokemonService,private storage:Storage,private navCtrl: NavController, private network: NetworkService, private toastController: ToastController) { }
-
-  ngOnInit() {
-     this.index = this.route.snapshot.paramMap.get('id');
-     console.log(this.index)
-    this.catchedPokemon =  this.storage.get(`catchedPokemon${this.index}`).then((data) =>{
-      this.nickName = data.NickName
-      this.currentImage = data.CustomPhoto;
-      if(this.network.isConnected()){
-        this.pokeService.getPokeDetails(data.Id).subscribe(details =>{
-          this.details = details;
-        })
-      }else{
-        this.presentToast('No Internet, try again launching the app again, when you have internet connection.', 5000);
-
-      }
-
-     }).then(() =>{
-       console.log(this.catchedPokemon);
-    })
-
-
+  constructor(private  route: ActivatedRoute, private camera: Camera, private pokeService: PokemonService, private storage: Storage, private navCtrl: NavController, private network: NetworkService, private toastController: ToastController) {
   }
 
-  saveNickName(){
-    console.log(this.catchedPokemon);
-    this.storage.get(`catchedPokemon${this.index}`).then((data) =>{
-      let pokemon = {
+  ngOnInit() {
+    this.index = this.route.snapshot.paramMap.get('id');
+    this.catchedPokemon = this.storage.get(`catchedPokemon${this.index}`).then((data) => {
+      this.nickName = data.NickName;
+      this.currentImage = data.CustomPhoto;
+      if (this.network.isConnected()) {
+        this.pokeService.getPokeDetails(data.Id).subscribe(details => {
+          this.details = details;
+        });
+      } else {
+        this.presentToast('No Internet, try again launching the app again, when you have internet connection.', 5000);
+      }
+    }).then(() => {
+      console.log(this.catchedPokemon);
+    });
+  }
+
+  saveNickName() {
+    this.storage.get(`catchedPokemon${this.index}`).then((data) => {
+      const pokemon = {
         Latitude: data.Latitude,
         Longitude: data.Longitude,
         Id: data.Id,
@@ -62,9 +57,8 @@ export class CatchedDetailsPage implements OnInit {
         CatchId: data.CatchId
       };
       this.storage.set(`catchedPokemon${this.index}`, pokemon);
-    })
+    });
   }
-
 
   async takePicture() {
     const options: CameraOptions = {
@@ -73,16 +67,13 @@ export class CatchedDetailsPage implements OnInit {
       encodingType: this.camera.EncodingType.JPEG,
       mediaType: this.camera.MediaType.PICTURE,
       saveToPhotoAlbum: true
-
-
     };
-
 
     this.camera.getPicture(options).then((imageData) => {
       this.currentImage = 'data:image/jpeg;base64,' + imageData;
       this.catchedPokemon.CustomPhoto = this.currentImage;
-      this.storage.get(`catchedPokemon${this.index}`).then((data) =>{
-        let pokemon = {
+      this.storage.get(`catchedPokemon${this.index}`).then((data) => {
+        const pokemon = {
           Latitude: data.Latitude,
           Longitude: data.Longitude,
           Id: data.Id,
@@ -93,22 +84,18 @@ export class CatchedDetailsPage implements OnInit {
           CatchId: data.CatchId
         };
         this.storage.set(`catchedPokemon${this.index}`, pokemon);
-      })
-
+      });
     }, (err) => {
       // Handle error
       console.log('Camera issue:' + err);
     });
   }
 
-
   async presentToast(message, duration) {
-    console.log(" YEET")
     const toast = await this.toastController.create({
       message,
       duration
     });
     await toast.present();
   }
-
 }

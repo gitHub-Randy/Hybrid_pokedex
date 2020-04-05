@@ -1,7 +1,6 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {IonInfiniteScroll, IonReorderGroup, ToastController} from '@ionic/angular';
 import {PokemonService} from '../../services/pokemon.service';
-import {Subscription} from 'rxjs';
 import {NetworkService} from '../../services/network.service';
 
 @Component({
@@ -19,22 +18,19 @@ export class Tab1Page implements OnInit {
   constructor(private pokeService: PokemonService, private toastController: ToastController, private network: NetworkService) {
   }
 
-  connectSubscription: Subscription;
-
   ngOnInit(): void {
-  }
-
-
-  ionViewDidLeave() {
-
   }
 
   ionViewDidEnter() {
       this.loadPokemon();
   }
 
+  ionViewDidLeave() {
+    this.offset = 0;
+    this.pokemon = [];
+  }
+
   loadPokemon(loadMore = false, event ?) {
-    console.log(this.network.isConnected());
     if (this.network.isConnected()) {
       if (loadMore) {
         this.offset += 25;
@@ -45,7 +41,7 @@ export class Tab1Page implements OnInit {
         if (event) {
           event.target.complete();
         }
-        if (this.offset == 125) {
+        if (this.offset === 125) {
           this.infinite.disabled = true;
         }
       });
@@ -55,6 +51,7 @@ export class Tab1Page implements OnInit {
   }
 
   onSearchChange(e) {
+    this.pokemon = [];
     const value = e.detail.value;
     if (value == '') {
       this.offset = 0;
@@ -78,7 +75,6 @@ export class Tab1Page implements OnInit {
   }
 
   async presentToast(message, duration) {
-    console.log(' YEET');
     const toast = await this.toastController.create({
       message,
       duration
