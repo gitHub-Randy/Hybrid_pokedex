@@ -9,8 +9,9 @@
 
 
 <ion-content>
-  <ion-label>Catch het {{ pokemon.Pokemon}}</ion-label><br>
-  <ion-text> Je hebt een {{ pokemon.Pokemon}}  gevonden! <br> maak snel een foto om het te vangen</ion-text>
+  <h2>Catch {{ pokemon.Pokemon}}</h2>
+  <ion-img src="{{pokemon.ImgURL}}"></ion-img>
+  <ion-text> You caught a  {{ pokemon.Pokemon}}! <br>Make a picture of your surrounding to document the location<br></ion-text>
   <ion-button (click)="takePicture()">Open Camera</ion-button>
   <ion-img *ngIf="currentImage != null" src="{{ currentImage }}"></ion-img>
 
