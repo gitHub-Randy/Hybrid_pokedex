@@ -1,6 +1,7 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {IonInfiniteScroll, IonReorderGroup, ToastController} from '@ionic/angular';
 import {PokemonService} from '../../services/pokemon.service';
+import {Network} from '@ionic-native/network/ngx';
 
 @Component({
   selector: 'app-tab1',
@@ -14,43 +15,51 @@ export class Tab1Page implements OnInit {
   // @ts-ignore
   @ViewChild(IonReorderGroup) reorderGroup: IonReorderGroup;
 
-  constructor(private pokeService: PokemonService, private toastController: ToastController) {
+  constructor(private pokeService: PokemonService, private toastController: ToastController, private network: Network) {
   }
 
   ngOnInit(): void {
-    this.loadPokemon();
+    const connectSubscription = this.network.onConnect().subscribe();
+
+    if (connectSubscription) {
+      this.loadPokemon();
+    } else {
+      this.presentToast('No Internet, try again launching the app again, when you have internet connection.', 5000);
+    }
+
+    connectSubscription.unsubscribe();
   }
 
-  loadPokemon(loadMore = false, event?){
-    if(loadMore){
+  loadPokemon(loadMore = false, event ?) {
+    if (loadMore) {
       this.offset += 25;
     }
     this.pokeService.getPokemon(this.offset).subscribe(res => {
       console.log('result: ', res);
       this.pokemon = [...this.pokemon, ...res];
-      if (event){
+      if (event) {
         event.target.complete();
       }
-      if(this.offset == 125){
+      if (this.offset == 125) {
         this.infinite.disabled = true;
       }
     });
 
   }
 
-  onSearchChange(e){
+  onSearchChange(e) {
     let value = e.detail.value;
-    if(value == ''){
+    if (value == '') {
       this.offset = 0;
       this.loadPokemon();
       return;
     }
 
-    this.pokeService.findPokemon(value).subscribe(res =>{
+    this.pokeService.findPokemon(value).subscribe(res => {
       this.pokemon = [res];
-    }, err =>{
+    }, err => {
       this.pokemon = [];
-    })
+    });
   }
 
   doReorder(ev: any) {
@@ -61,12 +70,12 @@ export class Tab1Page implements OnInit {
     this.reorderGroup.disabled = !this.reorderGroup.disabled;
   }
 
-  async presentToast(name) {
+  async presentToast(message, duration) {
     const toast = await this.toastController.create({
-      message: 'You selected ' + name + '!',
-      duration: 2000
+      message,
+      duration
     });
-    toast.present();
+    await toast.present();
   }
 
 }

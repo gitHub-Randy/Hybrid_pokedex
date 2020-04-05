@@ -9,6 +9,7 @@ import {Subscription} from 'rxjs';
 import { NavigationExtras } from '@angular/router';
 import { Storage } from '@ionic/storage';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
+import {Network} from '@ionic-native/network/ngx';
 
 @Component({
     selector: 'app-tab2',
@@ -26,12 +27,12 @@ export class Tab2Page implements OnInit {
     pokemonToCatch: any = {};
     pokeMarkers: marker = [];
 
-    constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private alertController: AlertController, private router: Router , private navCtrl: NavController, private storage: Storage,private androidPermissions: AndroidPermissions) {
-
+    constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private network: Network, private alertController: AlertController, private router: Router , private navCtrl: NavController, private storage: Storage,private androidPermissions: AndroidPermissions) {
     }
 
     ngOnInit() {
     }
+
     ionViewDidLoad(){
         console.log("ionViewDidLoad")
     }
@@ -66,16 +67,16 @@ export class Tab2Page implements OnInit {
     }
 
      subscribeToLocation(spawnedPokemon){
-        console.log("whooopp")
+        console.log("whooopp");
         this.locationSubscription =  this.watchLoc().subscribe(data => {
-            console.log(" LOGGINGS")
+            console.log(" LOGGINGS");
             this.ownLoc[0] = data.coords.latitude.toFixed(7);
             this.ownLoc[1] = data.coords.longitude.toFixed(7);
             this.map.setView(this.ownLoc);
             this.removeMarker();
             this.addMarker(data.coords.latitude, data.coords.longitude);
-            console.log("Before")
-            this.checkIfPokemonToCatch(spawnedPokemon)
+            console.log("Before");
+            this.checkIfPokemonToCatch(spawnedPokemon);
         });
     }
 
@@ -102,6 +103,10 @@ export class Tab2Page implements OnInit {
     }
 
     ionViewDidEnter() {
+      const connectSubscription = this.network.onConnect().subscribe();
+
+        if (connectSubscription) {
+      
         this.checkPermission().then(() => {
             console.log("yeeting IN")
             this.subscribeToLocation(this.spawnedPokemon);
@@ -119,8 +124,11 @@ export class Tab2Page implements OnInit {
 
             this.hasCatched = false;
         });
+          } else {
+            this.presentOfflineAlert();
+        }
 
-
+        connectSubscription.unsubscribe();
     }
 
     leafletMap(lat,lng) {
@@ -369,6 +377,17 @@ export class Tab2Page implements OnInit {
                     }
                 }
             ]
+        });
+
+        await alert.present();
+    }
+
+    async presentOfflineAlert() {
+        const alert = await this.alertController.create({
+            header: 'No Internet',
+            subHeader: 'ERROR',
+            message: 'Try again launching the app again, when you have internet connection.',
+            buttons: ['OK']
         });
 
         await alert.present();
