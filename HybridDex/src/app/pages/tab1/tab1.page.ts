@@ -61,19 +61,19 @@ export class Tab1Page implements OnInit {
 
   }
 
-  onSearchChange(e) {
+  onSearchChange(e){
     let value = e.detail.value;
-    if (value == '') {
+    if(value == ''){
       this.offset = 0;
       this.loadPokemon();
       return;
     }
 
-    this.pokeService.findPokemon(value).subscribe(res => {
+    this.pokeService.findPokemon(value).subscribe(res =>{
       this.pokemon = [res];
-    }, err => {
+    }, err =>{
       this.pokemon = [];
-    });
+    })
   }
 
   doReorder(ev: any) {
@@ -87,10 +87,10 @@ export class Tab1Page implements OnInit {
   async presentToast(message, duration) {
     console.log(" YEET")
     const toast = await this.toastController.create({
-      message,
-      duration
+      message: 'You selected ' + name + '!',
+      duration: 2000
     });
-    await toast.present();
+    toast.present();
   }
 
 }
