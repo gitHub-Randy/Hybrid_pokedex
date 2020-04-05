@@ -12,6 +12,9 @@ import { HttpClientModule } from '@angular/common/http';
 import { IonicStorageModule } from '@ionic/storage';
 
 import { Camera } from '@ionic-native/camera/ngx';
+import { File } from '@ionic-native/file/ngx';
+import { WebView } from '@ionic-native/ionic-webview/ngx';
+import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import { Network } from '@ionic-native/network/ngx';
 
 @NgModule({
@@ -23,6 +26,9 @@ import { Network } from '@ionic-native/network/ngx';
     StatusBar,
     SplashScreen,
     Camera,
+    File,
+    WebView,
+    AndroidPermissions,
     Network,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
   ],

@@ -8,6 +8,7 @@ import {Router} from '@angular/router';
 import {Subscription} from 'rxjs';
 import { NavigationExtras } from '@angular/router';
 import { Storage } from '@ionic/storage';
+import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import {Network} from '@ionic-native/network/ngx';
 
 @Component({
@@ -26,7 +27,7 @@ export class Tab2Page implements OnInit {
     pokemonToCatch: any = {};
     pokeMarkers: marker = [];
 
-    constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private network: Network, private alertController: AlertController, private router: Router , private navCtrl: NavController, private storage: Storage) {
+    constructor(private geolocation: Geolocation, private platform: Platform, private pokemonService: PokemonService, private network: Network, private alertController: AlertController, private router: Router , private navCtrl: NavController, private storage: Storage,private androidPermissions: AndroidPermissions) {
     }
 
     ngOnInit() {
@@ -95,17 +96,25 @@ export class Tab2Page implements OnInit {
     }
 
 
+  async  checkPermission(){
+        console.log("ACCESS PERMISSION")
+        await this.androidPermissions.requestPermissions([this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION]);
+
+    }
+
     ionViewDidEnter() {
-        const connectSubscription = this.network.onConnect().subscribe();
+      const connectSubscription = this.network.onConnect().subscribe();
 
         if (connectSubscription) {
-            console.log("yeeting IN");
+      
+        this.checkPermission().then(() => {
+            console.log("yeeting IN")
             this.subscribeToLocation(this.spawnedPokemon);
-            this.leafletMap(this.ownLoc[0], this.ownLoc[1]);
+            this.leafletMap(this.ownLoc[0],this.ownLoc[1]);
             // this.test();
-            this.checkNotAsync().then((data) => {
-                if (data[0] == null) {
-                    this.generatePokemon().then((data) => {
+            this.checkNotAsync().then((data)=>{
+                if(data[0] == null){
+                    this.generatePokemon().then((data)=>{
 
                         this.makePokeMarker(data);
                     });
@@ -114,7 +123,8 @@ export class Tab2Page implements OnInit {
             });
 
             this.hasCatched = false;
-        } else {
+        });
+          } else {
             this.presentOfflineAlert();
         }
 
@@ -198,7 +208,7 @@ export class Tab2Page implements OnInit {
                let coords = this.generateNearbyLocation(parseFloat(this.ownLoc[0]), parseFloat(this.ownLoc[1]));
                let newPokemon = {
                    'Latitude': coords[0], 'Longitude': coords[1], 'Pokemon': pokemon.name,
-                   'ImgURL': pokemon.images[3], 'Id': pokemon.id
+                   'ImgURL': pokemon.images[0], 'Id': pokemon.id
                };
                this.storage.set(`pokemon${i}`, newPokemon);
                this.spawnedPokemon.push(newPokemon);

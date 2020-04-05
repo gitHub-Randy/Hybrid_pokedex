@@ -1,5 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import { Storage } from '@ionic/storage';
+import {PokemonService} from '../../services/pokemon.service';
 
 @Component({
   selector: 'app-tab3',
@@ -8,52 +9,20 @@ import { Storage } from '@ionic/storage';
 })
 export class Tab3Page implements OnInit,OnDestroy  {
     catchedPokemons: Array<any> = [];
-  constructor(private storage: Storage) {
-      console.log("333333")
+    pokeImage:Array<any> = []
+  constructor(private storage: Storage, private pokeService: PokemonService) {
 
   }
 
   ngOnInit() {
     this.loadPokemon();
-    console.log("fdsafasdfadsf")
 
   }
 
-    ionViewDidLoad(){
-        console.log("ionViewDidLoad")
-    }
-    ionViewWillEnter(){
-        console.log("ionViewWillEnter")
-
-    }
-    ionViewWillLeave(){
-        console.log("ionViewWillLeave")
-
-    }
-
-    ionViewWillUnload(){
-        console.log("ionViewWillUnload")
-
-    }
-    ionViewCanEnter(){
-        console.log("ionViewCanEnter")
-
-    }
-    ionViewCanLeave(){
-        console.log("ionViewCanLeave")
-
-    }
-
-    ionViewDidLeave(){
-        console.log("DidLeave")
-
-    }
-    ionViewDidEnter() {
-      console.log("ionDidEnter")
-    }
 
 
-        async loadPokemon() {
+
+    async loadPokemon() {
       await this.storage.get("amountCatchedPokemons").then((data) =>{
           console.log(data)
           for(let i = 1; i<= data; i++){
@@ -64,12 +33,26 @@ export class Tab3Page implements OnInit,OnDestroy  {
                   this.catchedPokemons.push(data)
 
               })
+              this.pokeService.findPokemon(data.Id).subscribe(res =>{
+                  this.pokeImage.push([res]);
+              }, err =>{
+              })
           }
       })
        console.log(this.catchedPokemons);
+      console.log(this.pokeImage)
   }
 
     ngOnDestroy(): void {
       console.log("WOOOT")
     }
+
+    async DeletePokemon(poke,index) {
+       await this.storage.remove(`catchedPokemon${poke.CatchId}`);
+        this.catchedPokemons.splice(index,1);
+        await this.storage.get("amountCatchedPokemons").then((data) => {
+            let id = data
+             this.storage.set("amountCatchedPokemons", (id-1))
+        });
+        }
 }

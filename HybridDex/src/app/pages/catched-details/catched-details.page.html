@@ -11,7 +11,7 @@
 
   <div *ngIf="details">
     <ion-slides pager="true" [options]="slideOpts">
-      <ion-slide *ngFor="let sprite of details.images.slice().reverse()">
+      <ion-slide *ngFor="let sprite of details.images.slice()">
         <img [src]="sprite" style="height: 250px;">
       </ion-slide>
     </ion-slides>
@@ -49,6 +49,9 @@
             </ion-label>
           </ion-item>
         </ion-list>
+        <ion-img *ngIf="currentImage != null" src="{{ currentImage }}"></ion-img>
+        <ion-button (click)="takePicture()">Change Picture</ion-button>
+
       </ion-card-content>
     </ion-card>
   </div>

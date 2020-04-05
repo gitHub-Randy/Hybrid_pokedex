@@ -6,14 +6,19 @@
 
 <ion-content>
     <ion-list>
-        <ion-card *ngFor="let poke of catchedPokemons;" routerLink="/catched-details/{{poke.CatchId}}" href="/catched-details">
+        <ion-card *ngFor="let poke of catchedPokemons; let idx = index" >
             <ion-card-header>
                 <ion-card-subtitle>{{poke.NickName}}</ion-card-subtitle>
                 <ion-card-title>{{poke.Pokemon}}</ion-card-title>
+
             </ion-card-header>
 
             <ion-card-content>
-
+                <ion-avatar slot="start">
+                    <img src="{{poke.ImgURL}}" style="background: #f2f2f2;">
+                </ion-avatar>
+                <ion-button (click)="DeletePokemon(poke,idx)">DELETE</ion-button>
+                <ion-button routerLink="/catched-details/{{poke.CatchId}}" href="/catched-details">SHOW DETAILS</ion-button>
             </ion-card-content>
         </ion-card>
     </ion-list>
